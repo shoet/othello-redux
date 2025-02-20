@@ -4,6 +4,10 @@ export type CellPosition = { x: number; y: number };
 
 export type Player = { name: string; cellColor: CellColor };
 
+export type Result = {
+  score: { color: CellColor; count: number; player: Player }[];
+};
+
 enum CellDirection {
   Up = 0,
   UpRight = 45,
@@ -174,4 +178,28 @@ export function reverseCell(board: Board, position: CellPosition): Cells {
   newCells[position.y][position.x] = newCell;
 
   return newCells;
+}
+
+export function checkScore(board: Board, players: Player[]): Result {
+  let score: Record<CellColor, number> = {
+    black: 0,
+    white: 0,
+  };
+  board.cells.forEach((row) => {
+    row.forEach((cell) => {
+      if (cell.color != undefined) {
+        score[cell.color] += 1;
+      }
+    });
+  });
+
+  const getPlayer = (cellColor: CellColor): Player =>
+    players.filter((p) => p.cellColor == cellColor)[0];
+
+  return {
+    score: [
+      { color: "white", count: score.white, player: getPlayer("white") },
+      { color: "black", count: score.black, player: getPlayer("black") },
+    ],
+  };
 }
