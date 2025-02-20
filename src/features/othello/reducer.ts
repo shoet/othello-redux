@@ -5,6 +5,7 @@ import {
   CellPosition,
   getAroundSandwitchedCells,
   putCell,
+  putManyCell,
   reverseCell,
 } from "./othelloSlice";
 import { OthelloState } from "./state";
@@ -76,23 +77,19 @@ const reverseSandwitchedCells = (
     state.board,
     putedPosition,
     putedColor
-  );
+  )
+    .map((directionWithCells) => {
+      return directionWithCells.cells;
+    })
+    .flat();
 
-  let cells = state.board.cells;
-  targetCells.forEach((tc) => {
-    tc.cells.forEach((cell) => {
-      cells[cell.position.y][cell.position.x] = {
-        color: putedColor,
-        position: cell.position,
-      };
-    });
-  });
+  const newCells = putManyCell(state.board, targetCells);
 
   return {
     ...state,
     board: {
       ...state.board,
-      cells: cells,
+      cells: newCells,
     },
   };
 };

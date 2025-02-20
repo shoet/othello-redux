@@ -46,6 +46,9 @@ export function isEmptyCell(board: Board, x: number, y: number): boolean {
   return board.cells[y][x].color == undefined;
 }
 
+/**
+ * getDirectionCells は、指定された位置から指定された方向に向かって、指定された色のセルで挟まれたセルを取得する。
+ */
 export function getDirectionCells(
   board: Board,
   x: number,
@@ -93,6 +96,10 @@ export function getDirectionCells(
   return cells;
 }
 
+/**
+ * getAroundSandwitchedCells は、指定された位置のセルに対して、指定された色で挟まれたセルを取得する。
+ * 返り値は、挟まれたセルの方向とセルの配列のリストを返す。
+ */
 export function getAroundSandwitchedCells(
   board: Board,
   position: CellPosition,
@@ -132,6 +139,25 @@ export function putCell(
   const newCells = board.cells.map((row) => row.slice());
   newCells[position.y][position.x] = { position: position, color: color };
   return newCells;
+}
+
+/**
+ * putManyCell は、Board上のcellsに、putCellsを配置した新たなCellsを発行する。
+ * cellColorが指定されている場合は、その色で配置する。
+ */
+export function putManyCell(
+  board: Board,
+  putCells: Cell[],
+  cellColor?: CellColor
+): Cells {
+  let cells = board.cells;
+  putCells.forEach((cell) => {
+    cells[cell.position.y][cell.position.x] = {
+      color: cellColor || cell.color,
+      position: cell.position,
+    };
+  });
+  return cells;
 }
 
 export function reverseCell(board: Board, position: CellPosition): Cells {
