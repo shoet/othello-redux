@@ -4,13 +4,11 @@ import { useOthello } from "./hooks";
 import { StatusBar } from "../StatusBar";
 
 export const Othello = () => {
-  const { state, handlePutCell, handleReverseCell } = useOthello();
+  const { state, handlePutCell } = useOthello();
 
   const handleCliekCell = (cell: Cell, player: Player) => {
     if (cell.color == undefined) {
       handlePutCell(cell.position, player.cellColor);
-    } else {
-      handleReverseCell(cell.position, player.cellColor);
     }
   };
 

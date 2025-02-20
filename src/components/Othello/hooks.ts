@@ -21,22 +21,5 @@ export const useOthello = () => {
     dispatcher({ type: "term" });
   };
 
-  const handleReverseCell = (
-    position: CellPosition,
-    color: CellColor
-  ): void => {
-    const reverseAction: OthelloAction = {
-      type: "reverse",
-      position: position,
-    };
-    dispatcher(reverseAction);
-    dispatcher({
-      type: "reverseSandwitchedCells",
-      putedPosition: position,
-      putedColor: color,
-    });
-    dispatcher({ type: "term" });
-  };
-
-  return { state, handlePutCell, handleReverseCell };
+  return { state, handlePutCell };
 };

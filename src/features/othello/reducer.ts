@@ -6,7 +6,6 @@ import {
   getAroundSandwitchedCells,
   putCell,
   putManyCell,
-  reverseCell,
 } from "./othelloSlice";
 import { OthelloState } from "./state";
 
@@ -19,8 +18,6 @@ export const OthelloReducer = (
       return state;
     case "put":
       return putCellReducer(state, action.position, action.color);
-    case "reverse":
-      return reverseCellReducer(state, action.position);
     case "term":
       return termReducer(state);
     case "reverseSandwitchedCells":
@@ -39,20 +36,7 @@ const putCellReducer = (
   position: CellPosition,
   cellColor: CellColor
 ): OthelloState => {
-  console.log("put");
   const newCells = putCell(state.board, position, cellColor);
-  const newBoard: Board = { ...state.board, cells: newCells };
-  return {
-    ...state,
-    board: newBoard,
-  };
-};
-
-const reverseCellReducer = (
-  state: OthelloState,
-  position: CellPosition
-): OthelloState => {
-  const newCells = reverseCell(state.board, position);
   const newBoard: Board = { ...state.board, cells: newCells };
   return {
     ...state,
