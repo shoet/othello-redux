@@ -83,7 +83,7 @@ const reverseSandwitchedCells = (
     })
     .flat();
 
-  const newCells = putManyCell(state.board, targetCells);
+  const newCells = putManyCell(state.board, targetCells, putedColor);
 
   return {
     ...state,

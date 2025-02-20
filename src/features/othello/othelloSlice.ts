@@ -148,12 +148,12 @@ export function putCell(
 export function putManyCell(
   board: Board,
   putCells: Cell[],
-  cellColor?: CellColor
+  cellColor: CellColor
 ): Cells {
   let cells = board.cells;
   putCells.forEach((cell) => {
     cells[cell.position.y][cell.position.x] = {
-      color: cellColor || cell.color,
+      color: cellColor,
       position: cell.position,
     };
   });
