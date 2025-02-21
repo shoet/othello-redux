@@ -14,7 +14,10 @@ export const Othello = () => {
 
   return (
     <div>
-      <StatusBar currentPlayer={state.players[state.currentPlayerIndex]} />
+      <StatusBar
+        currentPlayer={state.players[state.currentPlayerIndex]}
+        result={state.result}
+      />
       <Board
         cells={state.board.cells}
         handleClickCell={(cell) =>

@@ -180,7 +180,7 @@ export function reverseCell(board: Board, position: CellPosition): Cells {
   return newCells;
 }
 
-export function checkScore(board: Board, players: Player[]): Result {
+export function calcScore(board: Board, players: Player[]): Result {
   let score: Record<CellColor, number> = {
     black: 0,
     white: 0,
@@ -202,4 +202,13 @@ export function checkScore(board: Board, players: Player[]): Result {
       { color: "black", count: score.black, player: getPlayer("black") },
     ],
   };
+}
+
+/**
+ * isEndGame は、Boardに配置された、石が配置されていないセルの数が0であるかを判定し、ゲームが終了したかを判定する。
+ */
+export function isEndGame(board: Board): boolean {
+  return (
+    board.cells.flat().filter((cell) => cell.color == undefined).length == 0
+  );
 }

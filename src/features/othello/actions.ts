@@ -8,4 +8,6 @@ export type OthelloAction =
       type: "reverseSandwitchedCells";
       putedPosition: CellPosition;
       putedColor: CellColor;
-    };
+    }
+  | { type: "checkGameEnd" }
+  | { type: "calcScore" };

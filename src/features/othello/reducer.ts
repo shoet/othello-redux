@@ -1,9 +1,11 @@
 import { OthelloAction } from "./actions";
 import {
   Board,
+  calcScore,
   CellColor,
   CellPosition,
   getAroundSandwitchedCells,
+  isEndGame,
   putCell,
   putManyCell,
 } from "./othelloSlice";
@@ -26,6 +28,8 @@ export const OthelloReducer = (
         action.putedPosition,
         action.putedColor
       );
+    case "calcScore":
+      return calcScoreReducer(state);
     default:
       throw new Error("not found action");
   }
@@ -76,4 +80,17 @@ const reverseSandwitchedCells = (
       cells: newCells,
     },
   };
+};
+
+const calcScoreReducer = (state: OthelloState): OthelloState => {
+  const endgame = isEndGame(state.board);
+  console.log(endgame);
+  if (isEndGame(state.board)) {
+    const result = calcScore(state.board, state.players);
+    return {
+      ...state,
+      result: result,
+    };
+  }
+  return state;
 };
