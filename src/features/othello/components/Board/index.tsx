@@ -1,4 +1,4 @@
-import { Cell, Cells } from "../../features/othello/othelloSlice";
+import { Cell, Cells } from "../../othelloSlice";
 import css from "./index.module.scss";
 
 type Props = {

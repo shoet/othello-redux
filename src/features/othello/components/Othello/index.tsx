@@ -1,7 +1,7 @@
 import { Board } from "../Board";
-import { Cell, Player } from "../../features/othello/othelloSlice";
 import { useOthello } from "./hooks";
 import { StatusBar } from "../StatusBar";
+import { Cell, Player } from "../../othelloSlice";
 
 export const Othello = () => {
   const { state, handlePutCell } = useOthello();

@@ -1,4 +1,4 @@
-import { Othello } from "./components/Othello";
+import { Othello } from "./features/othello/components/Othello";
 
 function App() {
   return <Othello />;
