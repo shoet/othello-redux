@@ -1,4 +1,4 @@
-import { Cell, Cells } from "../../features/othello/othelloSlice";
+import { Cell, Cells } from "../../othello";
 import css from "./index.module.scss";
 
 type Props = {
@@ -12,14 +12,15 @@ export const Board = (props: Props) => {
   return (
     <div className={css.board}>
       <div className={css.column}>
-        {cells.map((row) => {
+        {cells.map((row, idx) => {
           return (
-            <div className={css.row}>
-              {row.map((cell) => {
+            <div className={css.row} key={idx}>
+              {row.map((cell, idx) => {
                 return (
                   <div
                     className={css.cell}
                     onClick={() => handleClickCell(cell)}
+                    key={idx}
                   >
                     {cell.color}
                   </div>

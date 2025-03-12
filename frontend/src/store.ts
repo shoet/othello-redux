@@ -1,9 +1,11 @@
 import { configureStore } from "@reduxjs/toolkit";
 import { othelloReducer } from "./features/othello/othelloSlice";
+import { webSocketReducer } from "./features/websocket/webSocketSlice";
 
 export const store = configureStore({
   reducer: {
     othelloReducer: othelloReducer,
+    webSocketReducer: webSocketReducer,
   },
 });
 

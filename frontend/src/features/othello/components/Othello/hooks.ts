@@ -1,11 +1,12 @@
-import { CellColor, CellPosition } from "../../features/othello/othelloSlice";
 import {
   putCellAction,
   termAction,
   reverseCellAction,
   calcScoreAction,
-} from "../../features/othello/othelloSlice";
-import { useAppDispatch, useAppSelector } from "../../hook";
+  CellPosition,
+  CellColor,
+} from "../../othelloSlice";
+import { useAppDispatch, useAppSelector } from "../../../../hook";
 
 export const useOthello = () => {
   const dispatch = useAppDispatch();

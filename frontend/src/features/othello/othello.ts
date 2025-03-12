@@ -1,12 +1,3 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-
-export type OthelloState = {
-  board: Board;
-  currentPlayerIndex: number;
-  players: Player[];
-  result?: Result;
-};
-
 export type CellColor = "white" | "black";
 
 export type CellPosition = { x: number; y: number };
@@ -221,65 +212,3 @@ export function isEndGame(board: Board): boolean {
     board.cells.flat().filter((cell) => cell.color == undefined).length == 0
   );
 }
-
-const initState: OthelloState = {
-  board: getEmptyBoard(4),
-  players: [
-    { name: "taro", cellColor: "white" },
-    { name: "jiro", cellColor: "black" },
-  ],
-  currentPlayerIndex: 0,
-};
-
-export const othelloSlice = createSlice({
-  name: "othello",
-  initialState: initState,
-  reducers: {
-    putCellAction: (
-      state: OthelloState,
-      action: PayloadAction<{ position: CellPosition; cellColor: CellColor }>
-    ) => {
-      const { position, cellColor } = action.payload;
-      const newCells = putCell(state.board, position, cellColor);
-      state.board.cells = newCells;
-    },
-    termAction: (state) => {
-      const nextPlayerIndex =
-        (state.currentPlayerIndex + 1) % state.players.length;
-      state.currentPlayerIndex = nextPlayerIndex;
-    },
-    reverseCellAction: (
-      state,
-      action: PayloadAction<{
-        putedPosition: CellPosition;
-        putedColor: CellColor;
-      }>
-    ) => {
-      const { putedPosition, putedColor } = action.payload;
-      const targetCells = getAroundSandwitchedCells(
-        state.board,
-        putedPosition,
-        putedColor
-      )
-        .map((directionWithCells) => {
-          return directionWithCells.cells;
-        })
-        .flat();
-
-      const newCells = putManyCell(state.board, targetCells, putedColor);
-      state.board.cells = newCells;
-    },
-    calcScoreAction: (state) => {
-      const endgame = isEndGame(state.board);
-      console.log(endgame);
-      if (isEndGame(state.board)) {
-        const result = calcScore(state.board, state.players);
-        state.result = result;
-      }
-    },
-  },
-});
-
-export const { putCellAction, termAction, reverseCellAction, calcScoreAction } =
-  othelloSlice.actions;
-export const othelloReducer = othelloSlice.reducer;
