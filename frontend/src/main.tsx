@@ -6,7 +6,7 @@ import { Provider as StoreProvider } from "react-redux";
 import { store } from "./store.ts";
 import { WebSocketContextProvider } from "./features/websocket/components/WebSocketConnectionProvider/index.tsx";
 
-const webSocketHost = "ws://dummy";
+const webSocketHost = import.meta.env.VITE_WEB_SOCKET_API_HOST;
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
