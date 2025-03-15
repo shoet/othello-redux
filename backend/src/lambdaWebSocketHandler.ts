@@ -1,21 +1,11 @@
 import { Handler, APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
-import { ConnectionRepository, RoomRepository } from "./repository";
 import { z } from "zod";
-import {
-  ApiGatewayManagementApiClient,
-  GetConnectionCommand,
-  GoneException,
-  PostToConnectionCommand,
-} from "@aws-sdk/client-apigatewaymanagementapi";
 import "./extensions";
-
-class ConnectionNotFoundError extends Error {
-  readonly message: string;
-  constructor() {
-    super();
-    this.message = "connection not found";
-  }
-}
+import { ConnectionUsecase } from "./usecase/connection";
+import { JoinRoomUsecase } from "./usecase/joinRoom";
+import { WebSocketAPIAdapter } from "./infrastracture/adapter/webSocketAPIAdapter";
+import { ConnectionRepository } from "./infrastracture/repository/connectionRepository";
+import { RoomRepository } from "./infrastracture/repository/roomRepository";
 
 var environment = z.object({
   CONNECTION_TABLE_NAME: z.string().min(1),
@@ -37,16 +27,15 @@ function loadEnvironment(): Environment {
 const env = loadEnvironment();
 
 export const connectionHandler: Handler = async (
-  event: APIGatewayProxyWebsocketEventV2,
-  context
+  event: APIGatewayProxyWebsocketEventV2
 ) => {
   const connectionID = event.requestContext.connectionId;
 
   const connectionRepository = new ConnectionRepository(
     env.CONNECTION_TABLE_NAME
   );
-  const clientID = crypto.randomUUID();
-  await connectionRepository.saveConnection(clientID, connectionID);
+  const usecase = new ConnectionUsecase(connectionRepository);
+  const clientID = await usecase.run(connectionID);
 
   return {
     statusCode: 200,
@@ -73,145 +62,30 @@ type CustomEventPayload =
     };
 
 export const customEventHandler: Handler = async (
-  event: APIGatewayProxyWebsocketEventV2,
-  context
+  event: APIGatewayProxyWebsocketEventV2
 ) => {
   if (!event.body) {
     return;
   }
-  const { action, message } = JSON.parse(event.body);
+  const { message } = JSON.parse(event.body);
   const { type, data }: CustomEventPayload = JSON.parse(message);
-  switch (type) {
-    case "join_room":
-      await Promise.all([
-        await joinRoom(data.room_id, data.client_id),
-        await updateProfile(data.client_id, { roomID: data.room_id }),
-        await sendSystemMessageToRoom(
-          data.room_id,
-          `${data.client_id}さんが入室しました。`
-        ),
-      ]);
-      return { statusCode: 200 };
-
-    default:
-      console.log("unknown type", type);
-      return { statusCode: 200 };
-  }
-};
-
-// custom event wrapper ///////////////////////
-const sendSystemMessageToRoom = async (roomID: string, message: string) => {
-  await sendMessageToRoom(
-    roomID,
-    JSON.stringify({
-      type: "system_message",
-      data: { message: message },
-    })
-  );
-};
-
-const updateProfile = async (
-  clientID: string,
-  profile: { clientID?: string; roomID?: string }
-) => {
-  await sendMessage(
-    clientID,
-    JSON.stringify({
-      type: "update_profile",
-      data: { client_id: profile.clientID, room_id: profile.roomID },
-    })
-  );
-};
-
-const joinRoom = async (roomID: string, clientID: string) => {
-  const roomRepository = new RoomRepository(env.ROOM_TABLE_NAME);
-  await roomRepository.saveUserRoom(roomID, clientID);
-};
-
-const leaveRoom = async (roomID: string, clientID: string) => {
-  const roomRepository = new RoomRepository(env.ROOM_TABLE_NAME);
-  await roomRepository.deleteFromRoom(roomID, clientID);
-};
-
-// base send event /////////////////////////////
-const sendMessageToRoom = async (
-  roomID: string,
-  message: string,
-  option?: { ignoreClientIDs?: string[] }
-) => {
-  const roomRepository = new RoomRepository(env.ROOM_TABLE_NAME);
-
-  const room = await roomRepository.getRoom(roomID);
-  if (!room) {
-    throw new Error(`roomID not found: ${roomID}`);
-  }
-
-  await Promise.all(
-    room.clientIDs.map(async (clientID) => {
-      // 送信を除外するClientID
-      if (option?.ignoreClientIDs?.includes(clientID)) {
-        return await Promise.resolve();
-      }
-      if (clientID) {
-        return await sendMessage(clientID, message).catch(async (e) => {
-          // GoneExceptionの場合はコネクションが破棄されているものとして、ルームから削除する
-          if (
-            e instanceof GoneException ||
-            e instanceof ConnectionNotFoundError
-          ) {
-            await roomRepository.deleteFromRoom(room.roomID, clientID);
-            console.log("deleted discarded connection", {
-              clientID: clientID,
-            });
-          } else {
-            console.error("failed to delete from room", e);
-            throw e;
-          }
-        });
-      } else {
-        return await Promise.resolve();
-      }
-    })
-  );
-};
-
-const sendMessage = async (clientID: string, message: string) => {
-  const callbackUrl = env.CALLBACK_URL;
-  const client = new ApiGatewayManagementApiClient({ endpoint: callbackUrl });
-  const connectionRepository = new ConnectionRepository(
+  const websocketAdapter = new WebSocketAPIAdapter(env.CALLBACK_URL);
+  const connecitonRepository = new ConnectionRepository(
     env.CONNECTION_TABLE_NAME
   );
-  const connectionID = await connectionRepository.getConnectionID(clientID);
-  if (!connectionID) {
-    throw new ConnectionNotFoundError();
-  }
+  const roomRepository = new RoomRepository(env.ROOM_TABLE_NAME);
 
-  try {
-    const getConnectionCommand = new GetConnectionCommand({
-      ConnectionId: connectionID,
-    });
-    await client.send(getConnectionCommand);
-  } catch (e) {
-    if (e instanceof Error) {
-      console.error("failed to get connection", e);
-    } else {
-      console.error("failed to get connection. occurred unknown error", e);
-    }
-    throw e;
-  }
-
-  try {
-    const command = new PostToConnectionCommand({
-      ConnectionId: connectionID,
-      Data: message,
-    });
-    await client.send(command);
-  } catch (e) {
-    if (e instanceof Error) {
-      console.error("failed to sendMessage", e);
-    } else {
-      console.error("failed to sendMessage. occurred unknown error", e);
-    }
-    throw e;
+  switch (type) {
+    case "join_room":
+      const usecase = new JoinRoomUsecase(
+        websocketAdapter,
+        connecitonRepository,
+        roomRepository
+      );
+      await usecase.run(data.client_id, data.room_id);
+    case "chat_message":
+      break;
+    default:
+      console.log("unknown type", type);
   }
 };
