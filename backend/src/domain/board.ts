@@ -26,18 +26,11 @@ export type Cells = Cell[][];
 
 export class Board {
   boardID: BoardID;
-  roomID: RoomID;
   boardSize: number;
   cells: Cell[][];
 
-  constructor(
-    boardID: BoardID,
-    roomID: RoomID,
-    boardSize: number,
-    cells: Cell[][]
-  ) {
+  constructor(boardID: BoardID, boardSize: number, cells: Cell[][]) {
     this.boardID = boardID;
-    this.roomID = roomID;
     this.boardSize = boardSize;
     this.cells = cells;
   }
@@ -58,7 +51,7 @@ export class Board {
         if (!Board.isCell(cell)) throw new Error("invalid cell contents");
       }
     }
-    return new Board(boardID, roomID, boardSize, rows);
+    return new Board(boardID, boardSize, rows);
   }
 
   static isCell(cell: any): cell is Cell {
@@ -75,7 +68,6 @@ export class Board {
   toDTO(): BoardDTO {
     return {
       boardID: this.boardID,
-      roomID: this.roomID,
       boardSize: this.boardSize,
       data: JSON.stringify(this.cells),
     };

@@ -1,18 +1,32 @@
 export type ClientID = string;
 
 export type ConnectionID = string;
+
 export type Connection = { clientID: ClientID; connectionID: ConnectionID };
 
+export type Player = {
+  clientID: ClientID;
+};
+
 export type RoomID = string;
-export type Room = {
+
+export type RoomDTO = {
+  roomName: string;
   roomID: RoomID;
-  connections: Connection[];
+  clientIDs: ClientID[];
+  boardID?: BoardID;
+};
+
+export type Room = {
+  roomName: string;
+  roomID: RoomID;
+  players: Player[];
+  boardID?: BoardID;
 };
 
 export type BoardID = string;
 export type BoardDTO = {
   boardID: BoardID;
-  roomID: RoomID;
   boardSize: number;
   data: string;
 };
