@@ -45,6 +45,7 @@ import { BoardHistoryRepository } from "./infrastracture/repository/boardHistory
 // JoinRoomUsecase
 (async (run: boolean) => {
   if (!run) return;
+  console.log("JoinRoomUsecase");
   const cfnClient = new cfn.CloudFormationClient({});
 
   const describeCommand = new cfn.DescribeStacksCommand({
@@ -74,19 +75,19 @@ import { BoardHistoryRepository } from "./infrastracture/repository/boardHistory
 
   const webSocketAPIAdapter = new WebSocketAPIAdapter(callbackURL || "");
 
-  // const roomID = crypto.randomUUID();
-  const roomID = "1236";
+  const roomID = "1237";
   const usecase = new JoinRoomUsecase(
     webSocketAPIAdapter,
     connectionRepository,
     roomRepository
   );
-  await usecase.run("037c556b-fc54-4037-aea7-485c708e4a00", roomID);
+  await usecase.run("2bca7037-8ca1-4721-9952-8cd44dcba82f", roomID);
 })(false);
 
 // StartGameUsecase
 (async (run: boolean) => {
   if (!run) return;
+  console.log("StartGameUsecase");
   const cfnClient = new cfn.CloudFormationClient({});
   const describeCommand = new cfn.DescribeStacksCommand({
     StackName: "OthelloBackend-dev",
@@ -109,7 +110,7 @@ import { BoardHistoryRepository } from "./infrastracture/repository/boardHistory
   const boardRepository = new BoardRepository(boardTableName || "");
 
   const usecase = new StartGameUsecase(boardRepository, roomRepository);
-  const roomID = "1236";
+  const roomID = "1237";
   const boardSize = 8;
   const room = await usecase.run(roomID, boardSize);
   console.log(room);
@@ -118,6 +119,7 @@ import { BoardHistoryRepository } from "./infrastracture/repository/boardHistory
 // GetBoardUsecase
 (async (run: boolean) => {
   if (!run) return;
+  console.log("GetBoardUsecase");
   const cfnClient = new cfn.CloudFormationClient({});
   const describeCommand = new cfn.DescribeStacksCommand({
     StackName: "OthelloBackend-dev",
@@ -135,7 +137,7 @@ import { BoardHistoryRepository } from "./infrastracture/repository/boardHistory
   const boardRepository = new BoardRepository(boardTableName || "");
 
   const usecase = new GetBoardUsecase(boardRepository);
-  const boardID = "827b6db8-88e7-4097-b0e5-fe44bca88576";
+  const boardID = "70180f82-8823-4aff-b64c-71878374d377";
   const board = await usecase.run(boardID);
   console.log(board);
 })(false);
@@ -143,6 +145,7 @@ import { BoardHistoryRepository } from "./infrastracture/repository/boardHistory
 // OperationPutCellUsecase
 (async (run: boolean) => {
   if (!run) return;
+  console.log("OperationPutCellUsecase");
   const cfnClient = new cfn.CloudFormationClient({});
   const describeCommand = new cfn.DescribeStacksCommand({
     StackName: "OthelloBackend-dev",
@@ -166,12 +169,31 @@ import { BoardHistoryRepository } from "./infrastracture/repository/boardHistory
     boardHistoryTableName || ""
   );
 
+  const roomTableName = stack.Outputs?.find(
+    (o) => o.OutputKey == "RoomTableName"
+  )?.OutputValue;
+  const roomRepository = new RoomRepository(roomTableName || "");
+
+  const connectionTableName = stack.Outputs?.find(
+    (o) => o.OutputKey == "ConnectionTableName"
+  )?.OutputValue;
+  const connectionRepository = new ConnectionRepository(
+    connectionTableName || ""
+  );
+
+  const callbackURL = stack.Outputs?.find(
+    (o) => o.OutputKey == "WebSocketApiCallbackURL"
+  )?.OutputValue;
+  const webSocketAPIAdapter = new WebSocketAPIAdapter(callbackURL || "");
+
   const usecase = new OperationPutCellUsecase(
     boardRepository,
-    boardHistoryRepository
+    boardHistoryRepository,
+    roomRepository,
+    connectionRepository,
+    webSocketAPIAdapter
   );
-  const boardID = "827b6db8-88e7-4097-b0e5-fe44bca88576";
-  const clientID = "037c556b-fc54-4037-aea7-485c708e4a00";
-  const res = await usecase.run(boardID, clientID, { x: 0, y: 3 }, "black");
-  console.log(res.board.cells);
+  const boardID = "70180f82-8823-4aff-b64c-71878374d377";
+  const clientID = "148ad834-ae64-4e19-910b-3087444112cc";
+  await usecase.run(boardID, clientID, { x: 0, y: 3 }, "white");
 })(true);

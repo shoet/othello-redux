@@ -34,6 +34,15 @@ export class DynamoDB extends Construct {
         name: "room_id",
         type: cdk.aws_dynamodb.AttributeType.STRING,
       },
+      globalSecondaryIndexes: [
+        {
+          indexName: "board_id",
+          partitionKey: {
+            name: "board_id",
+            type: cdk.aws_dynamodb.AttributeType.STRING,
+          },
+        },
+      ],
       tags: [{ key: "stack", value: stack.stackName }],
       removalPolicy: cdk.RemovalPolicy.DESTROY,
       deletionProtection: false,

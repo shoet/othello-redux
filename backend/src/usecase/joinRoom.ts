@@ -1,10 +1,4 @@
-import {
-  ClientID,
-  Connection,
-  ConnectionID,
-  Room,
-  RoomID,
-} from "../domain/types";
+import { ClientID, Connection, Room, RoomID } from "../domain/types";
 import { UsecaseError } from "./error";
 
 interface IRoomRepository {
@@ -15,11 +9,9 @@ interface IRoomRepository {
 }
 
 interface IWebSocketAPIAdapter {
-  updateProfile(
-    connectionID: ConnectionID,
-    profile: { clientID?: ClientID; roomID?: RoomID }
-  ): Promise<void>;
-  sendSystemMessage(connectionID: ConnectionID, message: string): Promise<void>;
+  sendMessage(connectionID: string, message: string): Promise<void>;
+  createUpdateProfilePayload(clientID: string, roomID: string): string;
+  createSendSystemMessagePayload(message: string): string;
 }
 interface IConnectionRepository {
   getConnection(clientID: string): Promise<Connection | undefined>;
@@ -60,12 +52,13 @@ export class JoinRoomUsecase {
       throw new UsecaseError("room not found", 404);
     }
 
+    const payload = this.webSocketAPIAdapter.createUpdateProfilePayload(
+      clientID,
+      roomID
+    );
     await Promise.all([
       // ユーザー情報更新
-      await this.webSocketAPIAdapter.updateProfile(connection.connectionID, {
-        clientID,
-        roomID,
-      }),
+      this.webSocketAPIAdapter.sendMessage(connection.connectionID, payload),
       // ルーム全員にsystem_message送信
       this.sendSystemMessageToRoom(room, `${clientID}さんが入室しました。`),
     ]);
@@ -75,6 +68,8 @@ export class JoinRoomUsecase {
     room: Room,
     message: string
   ): Promise<void> {
+    const payload =
+      this.webSocketAPIAdapter.createSendSystemMessagePayload(message);
     await Promise.all([
       room.players.map(async (player) => {
         const conn = await this.connectionRepository.getConnection(
@@ -82,7 +77,7 @@ export class JoinRoomUsecase {
         );
         if (!conn) return await Promise.resolve();
         return await this.webSocketAPIAdapter
-          .sendSystemMessage(conn.connectionID, message)
+          .sendMessage(conn.connectionID, payload)
           .catch(async (e) => {
             console.log("connection disconnected", {
               clientID: conn.clientID,

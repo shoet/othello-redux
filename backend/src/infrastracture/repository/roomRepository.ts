@@ -204,6 +204,43 @@ export class RoomRepository extends BaseDynamoDBRepository {
     }
   }
 
+  async getByBoardID(boardID: BoardID): Promise<Room | undefined> {
+    const getCommand = new ddb.QueryCommand({
+      TableName: this.ddbTableName,
+      IndexName: "board_id",
+      KeyConditionExpression: "board_id = :board_id",
+      ExpressionAttributeValues: {
+        ":board_id": { S: boardID },
+      },
+    });
+    try {
+      const result = await this.ddbClient.send(getCommand);
+      if (!result.Items) return undefined;
+      const item = result.Items[0];
+      if (!item) return undefined;
+      const roomID = item["room_id"]?.S;
+      const roomName = item["room_name"]?.S;
+      const players = item["players"]?.L;
+      const boardID = item["board_id"]?.S;
+      if (!roomID || !roomName || !players) {
+        console.log("invalid room item", { item: item });
+        return undefined;
+      }
+      const playersValue = this.parsePlayersFromListAV({ L: players });
+
+      const room: Room = {
+        roomID: roomID,
+        roomName: roomName,
+        players: playersValue,
+        boardID: boardID,
+      };
+      return room;
+    } catch (e) {
+      console.error("failed to query table", e);
+      throw e;
+    }
+  }
+
   async getRoomMembers(roomID: RoomID): Promise<Players | undefined> {
     const getItemCommand = new ddb.GetItemCommand({
       TableName: this.ddbTableName,

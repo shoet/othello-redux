@@ -3,7 +3,7 @@ import {
   GetConnectionCommand,
   PostToConnectionCommand,
 } from "@aws-sdk/client-apigatewaymanagementapi";
-import { ClientID, ConnectionID, RoomID } from "../../domain/types";
+import { Board } from "../../domain/board";
 
 export class WebSocketAPIAdapter {
   private readonly callbackURL: string;
@@ -47,13 +47,24 @@ export class WebSocketAPIAdapter {
     }
   }
 
-  async updateProfile(
-    connectionID: ConnectionID,
-    profile: { clientID?: ClientID; roomID?: RoomID }
-  ): Promise<void> {}
+  createUpdateProfilePayload(clientID: string, roomID: string): string {
+    return JSON.stringify({
+      type: "update_profile",
+      data: { client_id: clientID, room_id: roomID },
+    });
+  }
 
-  async sendSystemMessage(
-    connectionID: ConnectionID,
-    message: string
-  ): Promise<void> {}
+  createSendSystemMessagePayload(message: string): string {
+    return JSON.stringify({
+      type: "system_message",
+      data: { message: message },
+    });
+  }
+
+  createSendBoardInfoPayload(board: Board, isEndGame: boolean): string {
+    return JSON.stringify({
+      type: "update_board",
+      data: { board: board, is_end_game: isEndGame },
+    });
+  }
 }
