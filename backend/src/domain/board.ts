@@ -52,11 +52,12 @@ export class Board {
   static isCell(cell: any): cell is Cell {
     return (
       typeof cell === "object" &&
-      cell !== null &&
       typeof cell.position === "object" &&
       typeof cell.position.x === "number" &&
       typeof cell.position.y === "number" &&
-      (cell.cellColor === "white" || cell.cellColor === "black")
+      (cell.cellColor === "white" ||
+        cell.cellColor === "black" ||
+        cell.cellColor === null)
     );
   }
 
