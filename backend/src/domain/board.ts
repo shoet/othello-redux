@@ -1,4 +1,13 @@
-import { BoardDTO, BoardID, Cell, CellColor, Position, RoomID } from "./types";
+import {
+  BoardDTO,
+  BoardID,
+  Cell,
+  CellColor,
+  Player,
+  Position,
+  RoomID,
+  Result,
+} from "./types";
 
 enum CellDirection {
   Up = 0,
@@ -189,5 +198,35 @@ export class Board {
         cells: directionCells,
       };
     });
+  }
+
+  isEndGame(): boolean {
+    return (
+      this.cells.flat().filter((cell) => cell.cellColor === null).length === 0
+    );
+  }
+
+  calcScore(players: Player[]): Result {
+    let score: Record<CellColor, number> = {
+      black: 0,
+      white: 0,
+    };
+    this.cells.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell.cellColor !== null) {
+          score[cell.cellColor] += 1;
+        }
+      });
+    });
+
+    const getPlayer = (cellColor: CellColor): Player =>
+      players.filter((p) => p.cellColor == cellColor)[0];
+
+    return {
+      score: [
+        { color: "white", count: score.white, player: getPlayer("white") },
+        { color: "black", count: score.black, player: getPlayer("black") },
+      ],
+    };
   }
 }

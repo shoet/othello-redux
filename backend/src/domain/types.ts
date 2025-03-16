@@ -6,6 +6,7 @@ export type Connection = { clientID: ClientID; connectionID: ConnectionID };
 
 export type Player = {
   clientID: ClientID;
+  cellColor: CellColor;
 };
 
 export type RoomID = string;
@@ -36,4 +37,8 @@ export type Position = { x: number; y: number };
 export type Cell = {
   position: Position;
   cellColor: CellColor | null;
+};
+
+export type Result = {
+  score: { color: CellColor; count: number; player: Player }[];
 };
