@@ -10,6 +10,8 @@ import { RoomRepository } from "./infrastracture/repository/roomRepository";
 var environment = z.object({
   CONNECTION_TABLE_NAME: z.string().min(1),
   ROOM_TABLE_NAME: z.string().min(1),
+  BOARD_TABLE_NAME: z.string().min(1),
+  BOARD_HISTORY_TABLE_NAME: z.string().min(1),
   CALLBACK_URL: z.string().min(1),
 });
 

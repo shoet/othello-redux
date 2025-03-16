@@ -8,6 +8,7 @@ import { JoinRoomUsecase } from "./usecase/joinRoom";
 import * as cfn from "@aws-sdk/client-cloudformation";
 import { StartGameUsecase } from "./usecase/startGame";
 import { OperationPutCellUsecase } from "./usecase/operationPutCell";
+import { BoardHistoryRepository } from "./infrastracture/repository/boardHistoryRepository";
 
 (async (run: boolean) => {
   if (!run) return;
@@ -158,8 +159,19 @@ import { OperationPutCellUsecase } from "./usecase/operationPutCell";
   )?.OutputValue;
   const boardRepository = new BoardRepository(boardTableName || "");
 
-  const usecase = new OperationPutCellUsecase(boardRepository);
+  const boardHistoryTableName = stack.Outputs?.find(
+    (o) => o.OutputKey == "BoardHistoryTableName"
+  )?.OutputValue;
+  const boardHistoryRepository = new BoardHistoryRepository(
+    boardHistoryTableName || ""
+  );
+
+  const usecase = new OperationPutCellUsecase(
+    boardRepository,
+    boardHistoryRepository
+  );
   const boardID = "827b6db8-88e7-4097-b0e5-fe44bca88576";
-  const res = await usecase.run(boardID, { x: 0, y: 3 }, "black");
+  const clientID = "037c556b-fc54-4037-aea7-485c708e4a00";
+  const res = await usecase.run(boardID, clientID, { x: 0, y: 3 }, "black");
   console.log(res.board.cells);
 })(true);

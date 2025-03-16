@@ -1,10 +1,11 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import * as path from "path";
 
 type Props = {
   connection_table_name: string;
   room_table_name: string;
+  board_table_name: string;
+  board_history_table_name: string;
 };
 
 export class Lambda extends Construct {
@@ -35,6 +36,8 @@ export class Lambda extends Construct {
         environment: {
           CONNECTION_TABLE_NAME: props.connection_table_name,
           ROOM_TABLE_NAME: props.room_table_name,
+          BOARD_TABLE_NAME: props.board_table_name,
+          BOARD_HISTORY_TABLE_NAME: props.board_history_table_name,
         },
       }
     );
@@ -50,6 +53,8 @@ export class Lambda extends Construct {
         environment: {
           CONNECTION_TABLE_NAME: props.connection_table_name,
           ROOM_TABLE_NAME: props.room_table_name,
+          BOARD_TABLE_NAME: props.board_table_name,
+          BOARD_HISTORY_TABLE_NAME: props.board_history_table_name,
         },
       }
     );

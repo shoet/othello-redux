@@ -11,6 +11,8 @@ export class OthelloBackendStack extends cdk.Stack {
     const lambda = new Lambda(this, "Lambda", {
       connection_table_name: dynamodb.connectionTable.tableName,
       room_table_name: dynamodb.roomTable.tableName,
+      board_table_name: dynamodb.boardTable.tableName,
+      board_history_table_name: dynamodb.boardHistoryTable.tableName,
     });
 
     dynamodb.grantReadWriteData(lambda.connectionLambdaFunction);
@@ -65,6 +67,10 @@ export class OthelloBackendStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "BoardTableName", {
       value: dynamodb.boardTable.tableName,
+    });
+
+    new cdk.CfnOutput(this, "BoardHistoryTableName", {
+      value: dynamodb.boardHistoryTable.tableName,
     });
   }
 }
