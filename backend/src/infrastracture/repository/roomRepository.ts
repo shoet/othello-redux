@@ -12,6 +12,15 @@ export class AlreadyCapacityRoomException extends RepositoryError {
   }
 }
 
+/**
+ * AlreadySetBoardException はボードがすでに設定されていた場合のエラー
+ */
+export class AlreadySetBoardException extends RepositoryError {
+  constructor() {
+    super("already set board");
+  }
+}
+
 export class RoomRepository extends BaseDynamoDBRepository {
   MAX_ROOM_CAPACITY: number = 2;
   constructor(tableName: string) {
@@ -110,10 +119,15 @@ export class RoomRepository extends BaseDynamoDBRepository {
           S: boardID,
         },
       },
+      // すでにボードがある場合は上書きしない
+      ConditionExpression: "attribute_not_exists(board_id)",
     });
     try {
       await this.ddbClient.send(putCommand);
     } catch (e) {
+      if (e instanceof ddb.ConditionalCheckFailedException) {
+        throw new AlreadySetBoardException();
+      }
       console.error("failed to saveBoardID", e);
       throw e;
     }
