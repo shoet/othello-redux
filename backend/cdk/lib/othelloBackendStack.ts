@@ -11,6 +11,8 @@ export class OthelloBackendStack extends cdk.Stack {
     const lambda = new Lambda(this, "Lambda", {
       connection_table_name: dynamodb.connectionTable.tableName,
       room_table_name: dynamodb.roomTable.tableName,
+      board_table_name: dynamodb.boardTable.tableName,
+      board_history_table_name: dynamodb.boardHistoryTable.tableName,
     });
 
     dynamodb.grantReadWriteData(lambda.connectionLambdaFunction);
@@ -39,6 +41,10 @@ export class OthelloBackendStack extends cdk.Stack {
       value: apiGateway.webSocketApiStage.url,
     });
 
+    new cdk.CfnOutput(this, "WebSocketApiCallbackURL", {
+      value: apiGateway.webSocketApiStage.callbackUrl,
+    });
+
     new cdk.CfnOutput(this, "HttpLambdaLogGroupName", {
       value: lambda.httpAPILambdaFunction.logGroup.logGroupName,
     });
@@ -49,6 +55,22 @@ export class OthelloBackendStack extends cdk.Stack {
 
     new cdk.CfnOutput(this, "WebSocketCustomEventLambdaLogGroup", {
       value: lambda.customEventLambdaFunction.logGroup.logGroupName,
+    });
+
+    new cdk.CfnOutput(this, "ConnectionTableName", {
+      value: dynamodb.connectionTable.tableName,
+    });
+
+    new cdk.CfnOutput(this, "RoomTableName", {
+      value: dynamodb.roomTable.tableName,
+    });
+
+    new cdk.CfnOutput(this, "BoardTableName", {
+      value: dynamodb.boardTable.tableName,
+    });
+
+    new cdk.CfnOutput(this, "BoardHistoryTableName", {
+      value: dynamodb.boardHistoryTable.tableName,
     });
   }
 }
