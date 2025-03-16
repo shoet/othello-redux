@@ -1,6 +1,6 @@
 import * as ddb from "@aws-sdk/client-dynamodb";
 import { BaseDynamoDBRepository } from "./baseRepository";
-import { ClientID, Connection, ConnectionID } from "../../domain/types";
+import { ClientID, Connection } from "../../domain/types";
 
 export class ConnectionRepository extends BaseDynamoDBRepository {
   constructor(tableName: string) {

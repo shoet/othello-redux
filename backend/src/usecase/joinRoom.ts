@@ -52,7 +52,7 @@ export class JoinRoomUsecase {
     }
 
     // ルーム情報を保存
-    await this.roomRepository.saveUserRoom(clientID, clientID);
+    await this.roomRepository.saveUserRoom(roomID, clientID);
 
     // ルーム情報を取得
     const room = await this.roomRepository.getRoom(roomID);
