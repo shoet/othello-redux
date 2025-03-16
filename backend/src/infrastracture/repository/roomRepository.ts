@@ -1,7 +1,15 @@
 import * as ddb from "@aws-sdk/client-dynamodb";
 import { BaseDynamoDBRepository } from "./baseRepository";
-import { BoardID, ClientID, Player, Room, RoomID } from "../../domain/types";
+import {
+  BoardID,
+  CellColor,
+  ClientID,
+  Player,
+  Room,
+  RoomID,
+} from "../../domain/types";
 import { RepositoryError } from "./errors";
+import { Players } from "../../domain/players";
 
 /**
  * AlreadyCapacityRoomException はルームが満室だった場合のエラー
@@ -62,6 +70,39 @@ export class RoomRepository extends BaseDynamoDBRepository {
     }
   }
 
+  parsePlayersFromListAV(players: ddb.AttributeValue): Player[] {
+    const values = players.L;
+    if (!values) return [];
+    return values
+      .map((v) => {
+        if (v.S) {
+          const parsed = JSON.parse(v.S);
+          const { client_id, cell_color } = parsed;
+          if (cell_color !== "white" && cell_color !== "black") {
+            throw new Error("invalid cell color");
+          }
+          return { clientID: client_id, cellColor: cell_color };
+        }
+      })
+      .filter(
+        (value): value is Exclude<typeof value, undefined> =>
+          value !== undefined
+      );
+  }
+
+  playersToAV(players: Player[]): ddb.AttributeValue {
+    return {
+      L: players.map((p) => {
+        return {
+          S: JSON.stringify({
+            client_id: p.clientID,
+            cell_color: p.cellColor,
+          }),
+        };
+      }),
+    };
+  }
+
   async saveUserRoom(roomID: string, clientID: ClientID): Promise<void> {
     const getItemCommand = new ddb.GetItemCommand({
       TableName: this.ddbTableName,
@@ -72,14 +113,15 @@ export class RoomRepository extends BaseDynamoDBRepository {
     const result = await this.ddbClient.send(getItemCommand);
     if (!result.Item) throw new Error("room not found");
 
-    let clientIDs: ClientID[] = [];
-    result.Item["client_ids"]?.L?.forEach((c) => {
-      if (c.S) clientIDs.push(c.S);
-    });
-    clientIDs.push(clientID);
-
-    if (clientIDs.length > this.MAX_ROOM_CAPACITY) {
-      throw new AlreadyCapacityRoomException();
+    const playersAV = result.Item["players"];
+    let playerList: Player[] = [];
+    if (playersAV) {
+      playerList = this.parsePlayersFromListAV(playersAV);
+    }
+    const players = Players.fromPlayers(playerList);
+    if (players.addAbleToAddPlayer()) {
+      const cellColor = players.getSelectableColor();
+      players.addPlayer({ clientID: clientID, cellColor: cellColor });
     }
 
     const now = new Date().toTimestampInSeconds();
@@ -88,14 +130,9 @@ export class RoomRepository extends BaseDynamoDBRepository {
       Key: {
         room_id: { S: roomID },
       },
-      UpdateExpression:
-        "SET client_ids = :client_ids, updated_at = :updated_at",
+      UpdateExpression: "SET players = :players, updated_at = :updated_at",
       ExpressionAttributeValues: {
-        ":client_ids": {
-          L: clientIDs.map((c) => {
-            return { S: c };
-          }),
-        },
+        ":players": this.playersToAV(players.players),
         ":updated_at": { N: now.toString() },
       },
     });
@@ -146,26 +183,46 @@ export class RoomRepository extends BaseDynamoDBRepository {
       if (!item) return undefined;
       const roomID = item["room_id"]?.S;
       const roomName = item["room_name"]?.S;
-      const clientIDs = item["client_ids"]?.L;
+      const players = item["players"]?.L;
       const boardID = item["board_id"]?.S;
-      if (!roomID || !roomName || !clientIDs) {
+      if (!roomID || !roomName || !players) {
         console.log("invalid room item", { item: item });
         return undefined;
       }
+      const playersValue = this.parsePlayersFromListAV({ L: players });
+
       const room: Room = {
         roomID: roomID,
         roomName: roomName,
-        players: clientIDs
-          .map((a): Player | undefined => {
-            if (a.S) return { clientID: a.S };
-          })
-          .filter(
-            (value): value is Exclude<typeof value, undefined> =>
-              value !== undefined
-          ),
+        players: playersValue,
         boardID: boardID,
       };
       return room;
+    } catch (e) {
+      console.error("failed to query table", e);
+      throw e;
+    }
+  }
+
+  async getRoomMembers(roomID: RoomID): Promise<Players | undefined> {
+    const getItemCommand = new ddb.GetItemCommand({
+      TableName: this.ddbTableName,
+      Key: {
+        room_id: { S: roomID },
+      },
+      ProjectionExpression: "players",
+    });
+    try {
+      const result = await this.ddbClient.send(getItemCommand);
+      const item = result.Item;
+      if (!item) return undefined;
+      const players = item["players"]?.L;
+      if (!players) {
+        console.log("invalid room item", { item: item });
+        return undefined;
+      }
+      const playersValue = this.parsePlayersFromListAV({ L: players });
+      return Players.fromPlayers(playersValue);
     } catch (e) {
       console.error("failed to query table", e);
       throw e;
