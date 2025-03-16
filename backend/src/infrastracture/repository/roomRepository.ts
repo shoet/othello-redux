@@ -1,6 +1,6 @@
 import * as ddb from "@aws-sdk/client-dynamodb";
 import { BaseDynamoDBRepository } from "./baseRepository";
-import { ClientID, Player, Room, RoomID } from "../../domain/types";
+import { BoardID, ClientID, Player, Room, RoomID } from "../../domain/types";
 import { RepositoryError } from "./errors";
 
 /**
@@ -94,6 +94,27 @@ export class RoomRepository extends BaseDynamoDBRepository {
       await this.ddbClient.send(putCommand);
     } catch (e) {
       console.error("failed to saveUserRoom", e);
+      throw e;
+    }
+  }
+
+  async saveBoardID(roomID: RoomID, boardID: BoardID): Promise<void> {
+    const putCommand = new ddb.UpdateItemCommand({
+      TableName: this.ddbTableName,
+      Key: {
+        room_id: { S: roomID },
+      },
+      UpdateExpression: "SET board_id = :board_id",
+      ExpressionAttributeValues: {
+        ":board_id": {
+          S: boardID,
+        },
+      },
+    });
+    try {
+      await this.ddbClient.send(putCommand);
+    } catch (e) {
+      console.error("failed to saveBoardID", e);
       throw e;
     }
   }

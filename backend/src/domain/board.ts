@@ -35,12 +35,7 @@ export class Board {
     this.cells = cells;
   }
 
-  static fromJSON(
-    boardID: BoardID,
-    roomID: RoomID,
-    boardSize: number,
-    body: string
-  ): Board {
+  static fromJSON(boardID: BoardID, boardSize: number, body: string): Board {
     const rows = JSON.parse(body);
     if (!Array.isArray(rows))
       throw new Error("invalid board contents: not an array");
@@ -63,6 +58,16 @@ export class Board {
       typeof cell.position.y === "number" &&
       (cell.cellColor === "white" || cell.cellColor === "black")
     );
+  }
+
+  static fromEmpty(boardID: BoardID, boardSize: number): Board {
+    const cells = Array.from({ length: boardSize }, (_, y) =>
+      Array.from({ length: boardSize }, (_, x) => ({
+        position: { x, y },
+        cellColor: null,
+      }))
+    );
+    return new Board(boardID, boardSize, cells);
   }
 
   toDTO(): BoardDTO {
