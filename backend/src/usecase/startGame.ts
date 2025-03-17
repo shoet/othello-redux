@@ -30,6 +30,13 @@ export class StartGameUsecase {
   }
 
   async run(roomID: RoomID, boardSize: number): Promise<Room> {
+    const MAX_BOARD_SIZE = 20;
+    if (boardSize > MAX_BOARD_SIZE) {
+      boardSize = MAX_BOARD_SIZE;
+    }
+
+    // TODO: ゲーム開始済みの場合は何もしない
+
     // ボードを用意する
     const board = await this.boardRepository.createBoard(boardSize);
 

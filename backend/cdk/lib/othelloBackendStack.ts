@@ -24,53 +24,40 @@ export class OthelloBackendStack extends cdk.Stack {
       connectionLambdaFunction: lambda.connectionLambdaFunction,
       customEventLambdaFunction: lambda.customEventLambdaFunction,
     });
-    lambda.connectionLambdaFunction.addEnvironment(
-      "CALLBACK_URL",
+    [lambda.connectionLambdaFunction, lambda.customEventLambdaFunction].map(
+      (l) =>
+        l.addEnvironment(
+          "CALLBACK_URL",
+          apiGateway.webSocketApiStage.callbackUrl
+        )
+    );
+
+    const cfnOutput = (key: string, value: string) => {
+      new cdk.CfnOutput(this, key, {
+        value: value,
+      });
+    };
+    cfnOutput("HTTPApiURL", apiGateway.httpApi.apiEndpoint);
+    cfnOutput("WebSocketApiURL", apiGateway.webSocketApiStage.url);
+    cfnOutput(
+      "WebSocketApiCallbackURL",
       apiGateway.webSocketApiStage.callbackUrl
     );
-    lambda.customEventLambdaFunction.addEnvironment(
-      "CALLBACK_URL",
-      apiGateway.webSocketApiStage.callbackUrl
+    cfnOutput(
+      "HttpLambdaLogGroupName",
+      lambda.httpAPILambdaFunction.logGroup.logGroupName
     );
-
-    new cdk.CfnOutput(this, "HTTPApiURL", {
-      value: apiGateway.httpApi.apiEndpoint,
-    });
-
-    new cdk.CfnOutput(this, "WebSocketApiURL", {
-      value: apiGateway.webSocketApiStage.url,
-    });
-
-    new cdk.CfnOutput(this, "WebSocketApiCallbackURL", {
-      value: apiGateway.webSocketApiStage.callbackUrl,
-    });
-
-    new cdk.CfnOutput(this, "HttpLambdaLogGroupName", {
-      value: lambda.httpAPILambdaFunction.logGroup.logGroupName,
-    });
-
-    new cdk.CfnOutput(this, "WebSocketConnectionLambdaLogGroup", {
-      value: lambda.connectionLambdaFunction.logGroup.logGroupName,
-    });
-
-    new cdk.CfnOutput(this, "WebSocketCustomEventLambdaLogGroup", {
-      value: lambda.customEventLambdaFunction.logGroup.logGroupName,
-    });
-
-    new cdk.CfnOutput(this, "ConnectionTableName", {
-      value: dynamodb.connectionTable.tableName,
-    });
-
-    new cdk.CfnOutput(this, "RoomTableName", {
-      value: dynamodb.roomTable.tableName,
-    });
-
-    new cdk.CfnOutput(this, "BoardTableName", {
-      value: dynamodb.boardTable.tableName,
-    });
-
-    new cdk.CfnOutput(this, "BoardHistoryTableName", {
-      value: dynamodb.boardHistoryTable.tableName,
-    });
+    cfnOutput(
+      "WebSocketConnectionLambdaLogGroup",
+      lambda.connectionLambdaFunction.logGroup.logGroupName
+    );
+    cfnOutput(
+      "WebSocketCustomEventLambdaLogGroup",
+      lambda.customEventLambdaFunction.logGroup.logGroupName
+    );
+    cfnOutput("ConnectionTableName", dynamodb.connectionTable.tableName);
+    cfnOutput("RoomTableName", dynamodb.roomTable.tableName);
+    cfnOutput("BoardTableName", dynamodb.boardTable.tableName);
+    cfnOutput("BoardHistoryTableName", dynamodb.boardHistoryTable.tableName);
   }
 }

@@ -39,7 +39,7 @@ export class APIGateway extends Construct {
       this,
       "WebSocketApi",
       {
-        apiName: "WebSocketAPI",
+        apiName: `${stack.stackName}-WebSocketApi`,
         routeSelectionExpression: "$request.body.action",
         connectRouteOptions: {
           integration:
@@ -73,7 +73,6 @@ export class APIGateway extends Construct {
           "WebsocketLambdaIntegrationCustom",
           props.customEventLambdaFunction
         ),
-      returnResponse: true,
     });
 
     this.webSocketApiStage = new cdk.aws_apigatewayv2.WebSocketStage(
