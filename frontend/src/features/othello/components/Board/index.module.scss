@@ -7,14 +7,14 @@
   grid-template-columns: repeat(var(--columns), 3rem);
   grid-template-rows: repeat(var(--columns), 3rem);
   gap: 0;
-  border: 6px solid #006600;
+  border: 6px solid var(--boardBackgroundColor);
   border-radius: 10px;
-  background-color: #006600;
+  background-color: var(--boardBackgroundColor);
 }
 
 .cell {
-  border: 2px solid #006600;
-  background-color: #5c995c;
+  border: 2px solid var(--boardBackgroundColor);
+  background-color: var(--boardForegroundColor);
   border-radius: 3px;
 
   display: flex;

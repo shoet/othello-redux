@@ -1,20 +1,12 @@
 import { CSSProperties } from "react";
-import { Cell, CellColor, Cells } from "../../othello";
+import { Cell, Cells } from "../../othello";
 import css from "./index.module.scss";
-import { OthelloDiskIcon } from "../../../../components/Icons";
+import { Disk } from "../Disk";
+import { theme } from "../../../../theme";
 
 type Props = {
   cells: Cells;
   handleClickCell: (cell: Cell) => void;
-};
-
-export const Disk = (props: { color: CellColor }) => {
-  const color = props.color == "black" ? "#333" : "white";
-  return (
-    <div className={css.disk}>
-      <OthelloDiskIcon backgroundColor={color} size={40} />
-    </div>
-  );
 };
 
 export const Board = (props: Props) => {
@@ -22,6 +14,8 @@ export const Board = (props: Props) => {
 
   const style = {
     "--columns": cells.length,
+    "--boardBackgroundColor": theme.othello.boardBackgroundColor,
+    "--boardForegroundColor": theme.othello.boardForegroundColor,
   } as CSSProperties;
 
   return (
