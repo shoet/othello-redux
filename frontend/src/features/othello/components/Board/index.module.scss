@@ -1,20 +1,19 @@
+.boardContainer {
+  display: flex;
+}
+
 .board {
-}
-
-.column {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid black;
-}
-
-.row {
-  display: flex;
-  flex-direction: row;
-  border: 1px solid black;
+  display: grid;
+  grid-template-columns: repeat(var(--columns), 3rem);
+  grid-template-rows: repeat(var(--columns), 3rem);
+  gap: 0;
+  border: 6px solid #006600;
+  border-radius: 10px;
+  background-color: #006600;
 }
 
 .cell {
-  border: 1px solid black;
-  height: 50px;
-  width: 50px;
+  border: 2px solid #006600;
+  background-color: #5c995c;
+  border-radius: 3px;
 }
