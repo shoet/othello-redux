@@ -1,10 +1,20 @@
 import { CSSProperties } from "react";
-import { Cell, Cells } from "../../othello";
+import { Cell, CellColor, Cells } from "../../othello";
 import css from "./index.module.scss";
+import { OthelloDiskIcon } from "../../../../components/Icons";
 
 type Props = {
   cells: Cells;
   handleClickCell: (cell: Cell) => void;
+};
+
+export const Disk = (props: { color: CellColor }) => {
+  const color = props.color == "black" ? "#333" : "white";
+  return (
+    <div className={css.disk}>
+      <OthelloDiskIcon backgroundColor={color} size={40} />
+    </div>
+  );
 };
 
 export const Board = (props: Props) => {
@@ -24,7 +34,7 @@ export const Board = (props: Props) => {
               key={`${rowIdx}-${colIdx}`}
               onClick={() => handleClickCell(cell)}
             >
-              {cell.color}
+              {cell.color ? <Disk color={cell.color} /> : null}
             </div>
           ))
         )}

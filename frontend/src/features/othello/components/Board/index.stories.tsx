@@ -4,8 +4,8 @@ import { Cell } from "../../othello";
 
 const cells: Cell[][] = [
   [
-    { position: { x: 0, y: 0 } },
-    { position: { x: 1, y: 0 } },
+    { position: { x: 0, y: 0 }, color: "black" },
+    { position: { x: 1, y: 0 }, color: "white" },
     { position: { x: 2, y: 0 } },
     { position: { x: 3, y: 0 } },
     { position: { x: 4, y: 0 } },
