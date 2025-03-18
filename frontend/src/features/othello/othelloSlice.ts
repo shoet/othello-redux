@@ -18,7 +18,7 @@ export type OthelloState = {
 };
 
 const initState: OthelloState = {
-  board: getEmptyBoard(4),
+  board: getEmptyBoard(8),
   players: [
     { name: "taro", cellColor: "white" },
     { name: "jiro", cellColor: "black" },

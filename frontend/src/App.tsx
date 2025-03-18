@@ -1,7 +1,7 @@
-import { Othello } from "./features/othello/components/Othello";
+import { OthelloPage } from "./pages/OthelloPage";
 
 function App() {
-  return <Othello />;
+  return <OthelloPage />;
 }
 
 export default App;

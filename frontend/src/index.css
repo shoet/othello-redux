@@ -1,3 +1,7 @@
 * {
   border-box: box-sizing;
 }
+
+body {
+  margin: 0;
+}
