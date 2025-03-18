@@ -20,7 +20,7 @@ const WebSocketContext = createContext<WebSocketContextValue>({
   operation: () => {},
 });
 
-export const useChatWebSocket = () => useContext(WebSocketContext);
+export const useWebSocket = () => useContext(WebSocketContext);
 
 type MessagePayload =
   | { type: "init_profile"; data: { client_id: string } }
