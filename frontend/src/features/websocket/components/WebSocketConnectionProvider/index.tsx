@@ -8,7 +8,6 @@ import {
 import { useAppDispatch } from "../../../../hook";
 import { WebSocketConnection } from "./wsConnection";
 import { updateProfileAction } from "../../webSocketSlice";
-import { joinRoomAction } from "../../../othello/othelloSlice";
 
 type WebSocketContextValue = {
   joinRoom: (clientID: string, roomID: string) => void;
@@ -26,15 +25,6 @@ type MessagePayload =
   | { type: "init_profile"; data: { client_id: string } }
   | { type: "update_profile"; data: { client_id: string; room_id: string } }
   | { type: "system_message"; data: { message: string } }
-  | {
-      type: "chat_message";
-      data: {
-        room_id: string;
-        client_id: string;
-        message: string;
-        timestamp: number;
-      };
-    }
   | { type: "operation"; data: {} };
 
 const tryParseMessage = (message: string): MessagePayload | undefined => {
@@ -93,9 +83,7 @@ export const WebSocketContextProvider = (props: {
   }, []);
 
   const joinRoom = (clientID: string, roomID: string) => {
-    if (connection && clientID) {
-      dispatch(joinRoomAction({ clientID, roomID }));
-    }
+    // joinRoomはHTTPエンドポイントにリクエストする
   };
 
   const operation = () => {

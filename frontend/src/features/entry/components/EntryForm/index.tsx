@@ -1,8 +1,31 @@
 import { useForm } from "react-hook-form";
 import { useAppSelector } from "../../../../hook";
-import { useWebSocket } from "../../../websocket/components/WebSocketConnectionProvider";
 import React, { useMemo } from "react";
 import styles from "./index.module.scss";
+import { useNavigate } from "react-router-dom";
+
+export const EntryForm = (props: React.ComponentProps<"div">) => {
+  const { ...rest } = props;
+
+  const navigate = useNavigate();
+  const roomID = useAppSelector(
+    (state) => state.webSocketReducer.currentRoomID
+  );
+  const clientID = useAppSelector((state) => state.webSocketReducer.clientID);
+
+  const handleOnSubmit = (clientID: string, roomID: string) => {
+    if (clientID && roomID) {
+      // HTTPエンドポイントにjoin_roomリクエストを送り、成功したら画面遷移して待機する
+      // 返されたroom_idをセットする
+    }
+  };
+
+  return (
+    <div {...rest}>
+      <EntryInnerForm initialClientID={clientID} submit={handleOnSubmit} />
+    </div>
+  );
+};
 
 export const EntryInnerForm = (
   props: {
@@ -57,24 +80,4 @@ export const EntryInnerForm = (
       </div>
     );
   }, [initialClientID, submit]);
-};
-
-export const EntryForm = (props: React.ComponentProps<"div">) => {
-  const { ...rest } = props;
-  const clientID = useAppSelector((state) => state.webSocketReducer.clientID);
-  const { joinRoom } = useWebSocket();
-
-  const handleOnSubmit = (clientID: string, roomID: string) => {
-    console.log(clientID);
-    console.log(roomID);
-    // if (clientID && roomID) {
-    //   joinRoom(clientID.toString(), roomID.toString());
-    // }
-  };
-
-  return (
-    <div {...rest}>
-      <EntryInnerForm initialClientID={clientID} submit={handleOnSubmit} />
-    </div>
-  );
 };
