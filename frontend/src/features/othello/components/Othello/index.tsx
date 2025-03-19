@@ -1,7 +1,10 @@
 import { Board } from "../Board";
 import { useOthello } from "./hooks";
-import { StatusBar } from "../StatusBar";
-import { Cell, Player } from "../../othelloSlice";
+import { Cell, Player } from "../../othello";
+import styles from "./index.module.scss";
+import { CSSProperties } from "react";
+import { theme } from "../../../../theme";
+import { OthelloHeader } from "../OthelloHeader";
 
 export const Othello = () => {
   const { state, handlePutCell } = useOthello();
@@ -12,18 +15,21 @@ export const Othello = () => {
     }
   };
 
+  const style = {
+    "--backgroundColor": theme.othello.backgrounddColor,
+  } as CSSProperties;
+
   return (
-    <div>
-      <StatusBar
-        currentPlayer={state.players[state.currentPlayerIndex]}
-        result={state.result}
-      />
-      <Board
-        cells={state.board.cells}
-        handleClickCell={(cell) =>
-          handleCliekCell(cell, state.players[state.currentPlayerIndex])
-        }
-      />
+    <div className={styles.othello} style={style}>
+      <OthelloHeader turnPlayer={state.players[state.currentPlayerIndex]} />
+      <div className={styles.board}>
+        <Board
+          cells={state.board.cells}
+          handleClickCell={(cell) =>
+            handleCliekCell(cell, state.players[state.currentPlayerIndex])
+          }
+        />
+      </div>
     </div>
   );
 };

@@ -3,10 +3,9 @@ import {
   termAction,
   reverseCellAction,
   calcScoreAction,
-  CellPosition,
-  CellColor,
 } from "../../othelloSlice";
 import { useAppDispatch, useAppSelector } from "../../../../hook";
+import { CellColor, CellPosition } from "../../othello";
 
 export const useOthello = () => {
   const dispatch = useAppDispatch();

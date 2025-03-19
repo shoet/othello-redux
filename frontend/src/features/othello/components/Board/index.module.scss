@@ -1,20 +1,24 @@
+.boardContainer {
+  display: flex;
+}
+
 .board {
-}
-
-.column {
-  display: flex;
-  flex-direction: column;
-  border: 1px solid black;
-}
-
-.row {
-  display: flex;
-  flex-direction: row;
-  border: 1px solid black;
+  display: grid;
+  grid-template-columns: repeat(var(--columns), 4rem);
+  grid-template-rows: repeat(var(--columns), 4rem);
+  gap: 0;
+  border: 10px solid var(--boardBackgroundColor);
+  border-radius: 10px;
+  background-color: var(--boardBackgroundColor);
 }
 
 .cell {
-  border: 1px solid black;
-  height: 50px;
-  width: 50px;
+  border: 2px solid var(--boardBackgroundColor);
+  background-color: var(--boardForegroundColor);
+  border-radius: 3px;
+
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }

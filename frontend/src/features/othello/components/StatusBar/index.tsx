@@ -1,4 +1,4 @@
-import { Player, Result } from "../../othelloSlice";
+import { Player, Result } from "../../othello";
 
 type Props = {
   currentPlayer: Player;
