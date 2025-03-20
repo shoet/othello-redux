@@ -17,6 +17,7 @@ export class OthelloBackendStack extends cdk.Stack {
 
     dynamodb.grantReadWriteData(lambda.connectionLambdaFunction);
     dynamodb.grantReadWriteData(lambda.customEventLambdaFunction);
+    dynamodb.grantReadWriteData(lambda.httpAPILambdaFunction);
 
     const apiGateway = new APIGateway(this, "APIGateway", {
       stage: props.stage,
@@ -24,13 +25,16 @@ export class OthelloBackendStack extends cdk.Stack {
       connectionLambdaFunction: lambda.connectionLambdaFunction,
       customEventLambdaFunction: lambda.customEventLambdaFunction,
     });
-    [lambda.connectionLambdaFunction, lambda.customEventLambdaFunction].map(
-      (l) =>
-        l.addEnvironment(
-          "CALLBACK_URL",
-          apiGateway.webSocketApiStage.callbackUrl
-        )
-    );
+    apiGateway.addLambdaEnvironmentWebSocketCallbackURL([
+      lambda.connectionLambdaFunction,
+      lambda.customEventLambdaFunction,
+      lambda.httpAPILambdaFunction,
+    ]);
+    apiGateway.grantGrantInvokeManageConnection([
+      lambda.connectionLambdaFunction,
+      lambda.customEventLambdaFunction,
+      lambda.httpAPILambdaFunction,
+    ]);
 
     const cfnOutput = (key: string, value: string) => {
       new cdk.CfnOutput(this, key, {

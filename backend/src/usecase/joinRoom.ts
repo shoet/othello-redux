@@ -62,6 +62,7 @@ export class JoinRoomUsecase {
       // ルーム全員にsystem_message送信
       this.sendSystemMessageToRoom(room, `${clientID}さんが入室しました。`),
     ]);
+    return roomID;
   }
 
   private async sendSystemMessageToRoom(

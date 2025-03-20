@@ -122,6 +122,8 @@ export class RoomRepository extends BaseDynamoDBRepository {
     if (players.addAbleToAddPlayer()) {
       const cellColor = players.getSelectableColor();
       players.addPlayer({ clientID: clientID, cellColor: cellColor });
+    } else {
+      throw new AlreadyCapacityRoomException();
     }
 
     const now = new Date().toTimestampInSeconds();

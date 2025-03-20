@@ -23,6 +23,13 @@ export class Lambda extends Construct {
         entry: `${cdkRoot}/../src/lambdaHttpHandler.ts`,
         handler: "handler",
         runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
+        timeout: cdk.Duration.seconds(30),
+        environment: {
+          CONNECTION_TABLE_NAME: props.connection_table_name,
+          ROOM_TABLE_NAME: props.room_table_name,
+          BOARD_TABLE_NAME: props.board_table_name,
+          BOARD_HISTORY_TABLE_NAME: props.board_history_table_name,
+        },
       }
     );
 
@@ -40,7 +47,13 @@ export class Lambda extends Construct {
         entry: `${cdkRoot}/../src/lambdaWebSocketHandler.ts`,
         handler: "connectionHandler",
         runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
-        environment: webSocketLambdaEnvironment,
+        timeout: cdk.Duration.seconds(30),
+        environment: {
+          CONNECTION_TABLE_NAME: props.connection_table_name,
+          ROOM_TABLE_NAME: props.room_table_name,
+          BOARD_TABLE_NAME: props.board_table_name,
+          BOARD_HISTORY_TABLE_NAME: props.board_history_table_name,
+        },
       }
     );
 
