@@ -39,7 +39,7 @@ export class APIGateway extends Construct {
       this,
       "WebSocketApi",
       {
-        apiName: "WebSocketAPI",
+        apiName: `${stack.stackName}-WebSocketApi`,
         routeSelectionExpression: "$request.body.action",
         connectRouteOptions: {
           integration:
@@ -73,7 +73,6 @@ export class APIGateway extends Construct {
           "WebsocketLambdaIntegrationCustom",
           props.customEventLambdaFunction
         ),
-      returnResponse: true,
     });
 
     this.webSocketApiStage = new cdk.aws_apigatewayv2.WebSocketStage(
@@ -85,5 +84,22 @@ export class APIGateway extends Construct {
         autoDeploy: true,
       }
     );
+  }
+
+  addLambdaEnvironmentWebSocketCallbackURL(
+    lambdaFunctions: cdk.aws_lambda.Function[]
+  ) {
+    for (const lambdaFunction of lambdaFunctions) {
+      lambdaFunction.addEnvironment(
+        "CALLBACK_URL",
+        this.webSocketApiStage.callbackUrl
+      );
+    }
+  }
+
+  grantGrantInvokeManageConnection(resources: cdk.aws_iam.IGrantable[]) {
+    for (const resource of resources) {
+      this.webSocketApi.grantManageConnections(resource);
+    }
   }
 }
