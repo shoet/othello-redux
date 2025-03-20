@@ -10,12 +10,10 @@ import { WebSocketConnection } from "./wsConnection";
 import { updateProfileAction } from "../../webSocketSlice";
 
 type WebSocketContextValue = {
-  joinRoom: (clientID: string, roomID: string) => void;
   operation: () => void;
 };
 
 const WebSocketContext = createContext<WebSocketContextValue>({
-  joinRoom: () => {},
   operation: () => {},
 });
 
@@ -82,10 +80,6 @@ export const WebSocketContextProvider = (props: {
     return connection.close();
   }, []);
 
-  const joinRoom = (clientID: string, roomID: string) => {
-    // joinRoomはHTTPエンドポイントにリクエストする
-  };
-
   const operation = () => {
     // TODO: ボードの操作
   };
@@ -93,7 +87,6 @@ export const WebSocketContextProvider = (props: {
   return (
     <WebSocketContext.Provider
       value={{
-        joinRoom,
         operation,
       }}
     >
