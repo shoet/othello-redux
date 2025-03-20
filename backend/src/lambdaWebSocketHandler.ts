@@ -42,54 +42,63 @@ export const connectionHandler: Handler = async (
   const connectionRepository = new ConnectionRepository(
     env.CONNECTION_TABLE_NAME
   );
+
   switch (routeKey) {
     case "$connect":
-      const usecase = new ConnectionUsecase(connectionRepository);
-      const clientID = await usecase.run(connectionID);
-      return {
-        statusCode: 200,
-        body: JSON.stringify({
-          type: "init_profile",
-          data: { client_id: clientID },
-        }),
-      };
+    case "$default": // connect時にdefaultにも飛んできてしまうので暫定対応
+      try {
+        const usecase = new ConnectionUsecase(connectionRepository);
+        const clientID = await usecase.run(connectionID);
+        console.log("clientID", clientID);
+        return {
+          statusCode: 200,
+          body: JSON.stringify({
+            type: "init_profile",
+            data: { client_id: clientID },
+          }),
+        };
+      } catch (e) {
+        console.error("failed to connect", e);
+        return {
+          statusCode: 500,
+          body: "failed to connect",
+        };
+      }
     case "$disconnect":
-      break;
-    case "$default":
       break;
   }
 };
 
 type CustomEventPayload =
   | {
-    type: "join_room";
-    data: { room_id: string; client_id: string };
-  }
+      type: "join_room";
+      data: { room_id: string; client_id: string };
+    }
   | {
-    type: "chat_message";
-    data: {
-      room_id: string;
-      client_id: string;
-      message: string;
-      timestamp: number;
-    };
-  }
+      type: "chat_message";
+      data: {
+        room_id: string;
+        client_id: string;
+        message: string;
+        timestamp: number;
+      };
+    }
   | {
-    type: "start_game";
-    data: {
-      room_id: string;
-      board_size: number;
-    };
-  }
+      type: "start_game";
+      data: {
+        room_id: string;
+        board_size: number;
+      };
+    }
   | {
-    type: "operation_put";
-    data: {
-      board_id: string;
-      client_id: string;
-      position: { x: number; y: number };
-      cellColor: CellColor;
+      type: "operation_put";
+      data: {
+        board_id: string;
+        client_id: string;
+        position: { x: number; y: number };
+        cellColor: CellColor;
+      };
     };
-  };
 
 export const customEventHandler: Handler = async (
   event: APIGatewayProxyWebsocketEventV2
