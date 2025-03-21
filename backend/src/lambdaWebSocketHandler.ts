@@ -71,10 +71,6 @@ export const connectionHandler: Handler = async (
 
 type CustomEventPayload =
   | {
-      type: "join_room";
-      data: { room_id: string; client_id: string };
-    }
-  | {
       type: "chat_message";
       data: {
         room_id: string;
@@ -119,14 +115,6 @@ export const customEventHandler: Handler = async (
   );
 
   switch (type) {
-    case "join_room":
-      const joinRoomUsecase = new JoinRoomUsecase(
-        websocketAdapter,
-        connectionRepository,
-        roomRepository
-      );
-      await joinRoomUsecase.run(data.client_id, data.room_id);
-      break;
     case "start_game":
       const startGameUsecase = new StartGameUsecase(
         boardRepository,

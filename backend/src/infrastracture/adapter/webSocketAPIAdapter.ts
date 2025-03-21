@@ -4,6 +4,7 @@ import {
   PostToConnectionCommand,
 } from "@aws-sdk/client-apigatewaymanagementapi";
 import { Board } from "../../domain/board";
+import { Player } from "../../domain/types";
 
 export class WebSocketAPIAdapter {
   private readonly callbackURL: string;
@@ -58,6 +59,13 @@ export class WebSocketAPIAdapter {
     return JSON.stringify({
       type: "system_message",
       data: { message: message },
+    });
+  }
+
+  createStartGameMessagePayload(board: Board, players: Player[]): string {
+    return JSON.stringify({
+      type: "start_game",
+      data: { board: board, players: players },
     });
   }
 
