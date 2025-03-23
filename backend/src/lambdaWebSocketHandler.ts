@@ -2,7 +2,6 @@ import { Handler, APIGatewayProxyWebsocketEventV2 } from "aws-lambda";
 import { z } from "zod";
 import "./extensions";
 import { ConnectionUsecase } from "./usecase/connection";
-import { JoinRoomUsecase } from "./usecase/joinRoom";
 import { WebSocketAPIAdapter } from "./infrastracture/adapter/webSocketAPIAdapter";
 import { ConnectionRepository } from "./infrastracture/repository/connectionRepository";
 import { RoomRepository } from "./infrastracture/repository/roomRepository";

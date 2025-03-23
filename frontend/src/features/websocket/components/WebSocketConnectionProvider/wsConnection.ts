@@ -1,50 +1,56 @@
+export type MessageCallback = (message: string) => void;
+
 export class WebSocketConnection {
   private host: string;
-  private socket: WebSocket;
+  private socket?: WebSocket;
+  private messageCbs: { [name: string]: MessageCallback } = {};
+  connected: boolean = false;
 
-  constructor(props: {
-    host: string;
-    /**
-     * 接続が確立した際に実行されるコールバック関数
-     */
-    openCb?: (socket: WebSocket) => void;
-    /**
-     * メッセージを受信した際に実行されるコールバック関数
-     */
-    messageCb?: (message: string) => void;
-  }) {
-    const { host, openCb, messageCb } = props;
+  constructor(props: { host: string }) {
+    const { host } = props;
 
     this.host = host;
+  }
+
+  connect = (openCb?: (socket: WebSocket) => void) => {
     this.socket = new WebSocket(`${this.host}`);
 
     this.socket.addEventListener("open", () => {
       // Connectionが確立したタイミングでpingを送信
-      if (this.socket.readyState === WebSocket.OPEN) {
+      if (this.socket?.readyState === WebSocket.OPEN) {
+        this.socket && openCb && openCb(this.socket);
         this.socket.send("ping");
       }
-
-      openCb && openCb(this.socket);
     });
 
     this.socket.addEventListener("message", (message) => {
-      messageCb && messageCb(message.data);
+      Object.values(this.messageCbs).forEach((cb) => {
+        cb(message.data);
+      });
     });
-  }
+  };
 
   sendMessage = (message: string) => {
-    this.socket.send(message);
+    this.socket?.send(message);
   };
 
   sendCustomMessage = (message: string) => {
-    this.socket.send(
+    this.socket?.send(
       JSON.stringify({ action: "custom_event", message: message })
     );
   };
 
+  addMessageCb = (name: string, cb: MessageCallback) => {
+    this.messageCbs[name] = cb;
+  };
+
+  removeMessageCb = (name: string) => {
+    delete this.messageCbs[name];
+  };
+
   close = () => {
-    if (this.socket.readyState === WebSocket.OPEN) {
-      this.socket.close();
+    if (this.socket?.readyState === WebSocket.OPEN) {
+      this.socket?.close();
     }
   };
 }

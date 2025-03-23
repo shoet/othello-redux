@@ -1,108 +1,55 @@
-import {
-  createContext,
-  ReactNode,
-  useContext,
-  useEffect,
-  useState,
-} from "react";
-import { useAppDispatch } from "../../../../hook";
-import { WebSocketConnection } from "./wsConnection";
-import { updateProfileAction } from "../../webSocketSlice";
-import { Board, Player } from "../../../othello/othello";
-import { startGameAction } from "../../../othello/othelloSlice";
+import { createContext, ReactNode, useContext } from "react";
+import { MessageCallback, WebSocketConnection } from "./wsConnection";
 
 type WebSocketContextValue = {
-  operation: () => void;
+  connect: () => void;
+  disconnect: () => void;
+  registerCallback: (name: string, cb: (message: string) => void) => void;
+  removeCallback: (name: string) => void;
 };
 
 const WebSocketContext = createContext<WebSocketContextValue>({
-  operation: () => {},
+  connect: () => {},
+  disconnect: () => {},
+  registerCallback: () => {},
+  removeCallback: () => {},
 });
 
 export const useWebSocket = () => useContext(WebSocketContext);
-
-type MessagePayload =
-  | { type: "init_profile"; data: { client_id: string } }
-  | { type: "update_profile"; data: { client_id: string; room_id: string } }
-  | { type: "system_message"; data: { message: string } }
-  | {
-      type: "start_game";
-      data: { board: Board; players: Player[]; current_turn_index: 0 };
-    }
-  | { type: "operation"; data: {} };
-
-const tryParseMessage = (message: string): MessagePayload | undefined => {
-  try {
-    return JSON.parse(message);
-  } catch (e) {
-    console.log("failed to parse request");
-  }
-};
 
 export const WebSocketContextProvider = (props: {
   host: string;
   children: ReactNode;
 }) => {
-  const dispatch = useAppDispatch();
-  const [connection, setConnection] = useState<WebSocketConnection>();
+  const connection = new WebSocketConnection({
+    host: props.host,
+  });
 
-  useEffect(() => {
-    const connection = new WebSocketConnection({
-      host: props.host,
-      openCb: () => {
-        console.log("connected server");
-      },
-      messageCb: (message) => {
-        if (message === "") {
-          // 空文字のメッセージが飛んでくることがあるため無視する
-          return;
-        }
-        const request = tryParseMessage(message);
-        if (!request) {
-          return;
-        }
-        const { type, data } = request;
-        switch (type) {
-          case "init_profile":
-            dispatch(updateProfileAction({ clientID: data.client_id }));
-            break;
-          case "update_profile":
-            if (data.client_id) {
-              dispatch(updateProfileAction({ clientID: data.client_id }));
-            }
-            if (data.room_id) {
-              dispatch(updateProfileAction({ roomID: data.room_id }));
-            }
-            break;
-          case "start_game":
-            dispatch(
-              startGameAction({
-                board: data.board,
-                players: data.players,
-                currentTurnIndex: data.current_turn_index,
-              })
-            );
-            break;
-          case "system_message":
-            console.log(data.message);
-            break;
-          default:
-            console.log("unknown action", type);
-        }
-      },
+  const connect = () => {
+    connection?.connect(() => {
+      console.log("connected");
     });
-    setConnection(connection);
-    return connection.close();
-  }, []);
+  };
 
-  const operation = () => {
-    // TODO: ボードの操作
+  const disconnect = () => {
+    connection?.close();
+  };
+
+  const registerCallback = (name: string, cb: MessageCallback) => {
+    connection?.addMessageCb(name, cb);
+  };
+
+  const removeCallback = (name: string) => {
+    connection?.removeMessageCb(name);
   };
 
   return (
     <WebSocketContext.Provider
       value={{
-        operation,
+        connect,
+        disconnect,
+        registerCallback,
+        removeCallback,
       }}
     >
       {props.children}
