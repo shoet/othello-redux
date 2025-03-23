@@ -65,7 +65,7 @@ export class WebSocketAPIAdapter {
   createStartGameMessagePayload(board: Board, players: Player[]): string {
     return JSON.stringify({
       type: "start_game",
-      data: { board: board, players: players },
+      data: { board: board, players: players, current_turn_index: 0 },
     });
   }
 

@@ -82,6 +82,7 @@ type CustomEventPayload =
   | {
       type: "start_game";
       data: {
+        client_id: string;
         room_id: string;
         board_size: number;
       };
@@ -118,9 +119,11 @@ export const customEventHandler: Handler = async (
     case "start_game":
       const startGameUsecase = new StartGameUsecase(
         boardRepository,
-        roomRepository
+        roomRepository,
+        connectionRepository,
+        websocketAdapter
       );
-      await startGameUsecase.run(data.room_id, data.board_size);
+      await startGameUsecase.run(data.client_id, data.room_id, data.board_size);
       break;
     case "operation_put":
       const operationPutCellUsecase = new OperationPutCellUsecase(
