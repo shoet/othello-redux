@@ -24,7 +24,7 @@ export class DynamoDB extends Construct {
         tags: [{ key: "stack", value: stack.stackName }],
         removalPolicy: cdk.RemovalPolicy.DESTROY,
         deletionProtection: false,
-        timeToLiveAttribute: "expire_at",
+        timeToLiveAttribute: "expired_at",
       }
     );
 

@@ -2,7 +2,7 @@ export type CellColor = "white" | "black";
 
 export type CellPosition = { x: number; y: number };
 
-export type Player = { name: string; cellColor: CellColor };
+export type Player = { clientID: string; cellColor: CellColor };
 
 export type Result = {
   score: { color: CellColor; count: number; player: Player }[];

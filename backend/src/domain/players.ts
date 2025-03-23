@@ -1,4 +1,4 @@
-import { CellColor, Player } from "./types";
+import { CellColor, ClientID, Player } from "./types";
 
 export class Players {
   MAX_PLAYERS = 2;
@@ -33,5 +33,10 @@ export class Players {
 
   isFull(): boolean {
     return this.players.length === this.MAX_PLAYERS;
+  }
+
+  // playersにclientIDを持つメンバーが含まれているかを返す
+  isContainMember(clientID: ClientID) {
+    return this.players.find((m) => m.clientID === clientID) !== undefined;
   }
 }

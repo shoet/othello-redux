@@ -9,7 +9,16 @@ import { CellColor, CellPosition } from "../../othello";
 
 export const useOthello = () => {
   const dispatch = useAppDispatch();
-  const state = useAppSelector((store) => store.othelloReducer);
+  const clientID = useAppSelector((state) => state.webSocketReducer.clientID);
+  const roomID = useAppSelector(
+    (state) => state.webSocketReducer.currentRoomID
+  );
+  const gameStatus = useAppSelector((state) => state.othelloReducer.status);
+  const board = useAppSelector((state) => state.othelloReducer.board);
+  const players = useAppSelector((state) => state.othelloReducer.players);
+  const currentPlayerIndex = useAppSelector(
+    (state) => state.othelloReducer.currentPlayerIndex
+  );
 
   const handlePutCell = (position: CellPosition, color: CellColor): void => {
     // 石を配置する
@@ -22,5 +31,13 @@ export const useOthello = () => {
     dispatch(termAction());
   };
 
-  return { state, handlePutCell };
+  return {
+    clientID,
+    roomID,
+    gameStatus,
+    board,
+    players,
+    currentPlayerIndex,
+    handlePutCell,
+  };
 };

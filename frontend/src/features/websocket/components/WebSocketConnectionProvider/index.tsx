@@ -8,14 +8,14 @@ import {
 import { useAppDispatch } from "../../../../hook";
 import { WebSocketConnection } from "./wsConnection";
 import { updateProfileAction } from "../../webSocketSlice";
+import { Board, Player } from "../../../othello/othello";
+import { startGameAction } from "../../../othello/othelloSlice";
 
 type WebSocketContextValue = {
-  joinRoom: (clientID: string, roomID: string) => void;
   operation: () => void;
 };
 
 const WebSocketContext = createContext<WebSocketContextValue>({
-  joinRoom: () => {},
   operation: () => {},
 });
 
@@ -25,6 +25,10 @@ type MessagePayload =
   | { type: "init_profile"; data: { client_id: string } }
   | { type: "update_profile"; data: { client_id: string; room_id: string } }
   | { type: "system_message"; data: { message: string } }
+  | {
+      type: "start_game";
+      data: { board: Board; players: Player[]; current_turn_index: 0 };
+    }
   | { type: "operation"; data: {} };
 
 const tryParseMessage = (message: string): MessagePayload | undefined => {
@@ -70,6 +74,15 @@ export const WebSocketContextProvider = (props: {
               dispatch(updateProfileAction({ roomID: data.room_id }));
             }
             break;
+          case "start_game":
+            dispatch(
+              startGameAction({
+                board: data.board,
+                players: data.players,
+                currentTurnIndex: data.current_turn_index,
+              })
+            );
+            break;
           case "system_message":
             console.log(data.message);
             break;
@@ -82,10 +95,6 @@ export const WebSocketContextProvider = (props: {
     return connection.close();
   }, []);
 
-  const joinRoom = (clientID: string, roomID: string) => {
-    // joinRoomはHTTPエンドポイントにリクエストする
-  };
-
   const operation = () => {
     // TODO: ボードの操作
   };
@@ -93,7 +102,6 @@ export const WebSocketContextProvider = (props: {
   return (
     <WebSocketContext.Provider
       value={{
-        joinRoom,
         operation,
       }}
     >

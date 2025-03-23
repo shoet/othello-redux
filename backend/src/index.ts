@@ -7,6 +7,7 @@ import { RoomRepository } from "./infrastracture/repository/roomRepository";
 import { JoinRoomUsecase } from "./usecase/joinRoom";
 import { BoardRepository } from "./infrastracture/repository/boardRepository";
 import { cors } from "hono/cors";
+import { ClientIDIsNotMember, StartGameUsecase } from "./usecase/startGame";
 
 var environment = z.object({
   CONNECTION_TABLE_NAME: z.string().min(1),
@@ -80,6 +81,52 @@ app.post("/join_room", async (c) => {
   );
 
   return c.json({ room_id: roomID }, 200);
+});
+
+app.post("/start_game", async (c) => {
+  const body = await c.req.json();
+  const requestBody = z
+    .object({
+      client_id: z.string().min(1),
+      room_id: z.string().min(1),
+      board_size: z
+        .number()
+        .min(StartGameUsecase.MIN_BOARD_SIZE, {
+          message: `指定できるボードサイズは${StartGameUsecase.MIN_BOARD_SIZE}以上です`,
+        })
+        .max(StartGameUsecase.MAX_BOARD_SIZE, {
+          message: `指定できるボードサイズは${StartGameUsecase.MAX_BOARD_SIZE}以下です`,
+        }),
+    })
+    .safeParse(body);
+  if (!requestBody.success) {
+    return c.json({ error: "invalid request body" }, 400);
+  }
+  const { client_id, room_id, board_size } = requestBody.data;
+
+  const boardRepository = new BoardRepository(env.BOARD_TABLE_NAME);
+  const roomRepository = new RoomRepository(env.ROOM_TABLE_NAME);
+  const websocketAdapter = new WebSocketAPIAdapter(env.CALLBACK_URL);
+  const connecitonRepository = new ConnectionRepository(
+    env.CONNECTION_TABLE_NAME
+  );
+
+  const usecase = new StartGameUsecase(
+    boardRepository,
+    roomRepository,
+    connecitonRepository,
+    websocketAdapter
+  );
+  try {
+    const room = await usecase.run(client_id, room_id, board_size);
+    return c.json({ room: room }, 200);
+  } catch (e) {
+    if (e instanceof ClientIDIsNotMember) {
+      return c.json({ message: "member is not full" }, 200);
+    }
+    console.error("unexpected error", e);
+    return c.json({ error: "Internal Server Error" }, 500);
+  }
 });
 
 export default app;
