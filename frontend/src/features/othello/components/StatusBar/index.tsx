@@ -12,12 +12,12 @@ const ScoreDisplay = ({ result }: { result: Result }) => {
     <div>
       <div>
         <span>{playerA.color}/</span>
-        <span>{playerA.player.name} さん/</span>
+        <span>{playerA.player.clientID} さん/</span>
         <span>{playerA.count} point</span>
       </div>
       <div>
         <span>{playerB.color}/</span>
-        <span>{playerB.player.name} さん/</span>
+        <span>{playerB.player.clientID} さん/</span>
         <span>{playerB.count}point</span>
       </div>
     </div>
@@ -31,7 +31,7 @@ export const StatusBar = (props: Props) => {
       {result == undefined ? (
         <div>
           <span>{props.currentPlayer.cellColor}: </span>
-          <span>{props.currentPlayer.name}さんのターン</span>
+          <span>{props.currentPlayer.clientID}さんのターン</span>
         </div>
       ) : (
         <div>

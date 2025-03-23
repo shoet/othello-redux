@@ -7,7 +7,7 @@ export default {
   component: OthelloHeader,
   args: {
     turnPlayer: {
-      name: "shoet",
+      clientID: "shoet",
       cellColor: "black",
     },
   },

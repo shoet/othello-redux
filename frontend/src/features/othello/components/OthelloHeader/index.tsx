@@ -3,9 +3,11 @@ import { Player } from "../../othello";
 import { Disk } from "../Disk";
 import styles from "./index.module.scss";
 import { theme } from "../../../../theme";
+import { OthelloGameStatus } from "../../othelloSlice";
 
 type Props = {
-  turnPlayer: Player;
+  status: OthelloGameStatus;
+  turnPlayer?: Player;
 };
 
 export const OthelloHeader = (props: Props) => {
@@ -14,8 +16,16 @@ export const OthelloHeader = (props: Props) => {
   } as CSSProperties;
   return (
     <div className={styles.header} style={style}>
-      <Disk color={props.turnPlayer.cellColor} />
-      <span className={styles.turn}>{`${props.turnPlayer.name}'s Turn`}</span>
+      {props.status === "playing" && props.turnPlayer ? (
+        <div>
+          <Disk color={props.turnPlayer.cellColor} />
+          <span
+            className={styles.turn}
+          >{`${props.turnPlayer.clientID}'s Turn`}</span>
+        </div>
+      ) : (
+        <div className={styles.systemMessage}>ゲームを開始します。</div>
+      )}
     </div>
   );
 };

@@ -9,20 +9,23 @@ import {
   calcScore,
 } from "./othello";
 
+export type OthelloGameStatus = "prepare" | "playing" | "end";
+
 export type OthelloState = {
+  status: OthelloGameStatus;
   roomID?: string;
   board: Board;
   currentPlayerIndex: number;
-  players: Player[];
+  players?: Player[];
   result?: Result;
 };
 
+export const DEFAULT_BOARD_SIZE = 8;
+
 const initState: OthelloState = {
-  board: getEmptyBoard(8),
-  players: [
-    { name: "taro", cellColor: "white" },
-    { name: "jiro", cellColor: "black" },
-  ],
+  status: "prepare",
+  board: getEmptyBoard(DEFAULT_BOARD_SIZE),
+  players: [],
   currentPlayerIndex: 0,
 };
 
@@ -30,12 +33,19 @@ export const othelloSlice = createSlice({
   name: "othello",
   initialState: initState,
   reducers: {
-    joinRoomAction: (
+    startGameAction: (
       state: OthelloState,
-      action: PayloadAction<{ clientID: string; roomID: string }>
+      aciton: PayloadAction<{
+        board: Board;
+        players: Player[];
+        currentTurnIndex: number;
+      }>
     ) => {
-      // TODO
-      state.roomID = action.payload.roomID;
+      const { board, players, currentTurnIndex } = aciton.payload;
+      state.board = board;
+      state.players = players;
+      state.status = "playing";
+      state.currentPlayerIndex = currentTurnIndex;
     },
     putCellAction: (
       state: OthelloState,
@@ -46,6 +56,7 @@ export const othelloSlice = createSlice({
       state.board.cells = newCells;
     },
     termAction: (state) => {
+      if (!state.players) return;
       const nextPlayerIndex =
         (state.currentPlayerIndex + 1) % state.players.length;
       state.currentPlayerIndex = nextPlayerIndex;
@@ -74,7 +85,7 @@ export const othelloSlice = createSlice({
     calcScoreAction: (state) => {
       const endgame = isEndGame(state.board);
       console.log(endgame);
-      if (isEndGame(state.board)) {
+      if (state.players && isEndGame(state.board)) {
         const result = calcScore(state.board, state.players);
         state.result = result;
       }
@@ -83,10 +94,10 @@ export const othelloSlice = createSlice({
 });
 
 export const {
-  joinRoomAction,
   putCellAction,
   termAction,
   reverseCellAction,
   calcScoreAction,
+  startGameAction,
 } = othelloSlice.actions;
 export const othelloReducer = othelloSlice.reducer;

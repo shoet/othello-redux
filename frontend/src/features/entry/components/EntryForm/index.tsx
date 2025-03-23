@@ -1,6 +1,6 @@
 import { useForm } from "react-hook-form";
 import { useAppSelector } from "../../../../hook";
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import styles from "./index.module.scss";
 import { useNavigate } from "react-router-dom";
 import { useEntryForm } from "./hooks";
@@ -8,7 +8,7 @@ import { useEntryForm } from "./hooks";
 export const EntryForm = (props: React.ComponentProps<"div">) => {
   const { ...rest } = props;
 
-  const { joinRoom, isLoading } = useEntryForm();
+  const { joinRoom } = useEntryForm();
   const navigate = useNavigate();
   const roomID = useAppSelector(
     (state) => state.webSocketReducer.currentRoomID
