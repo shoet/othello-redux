@@ -20,7 +20,7 @@ enum CellDirection {
 }
 
 export type Cell = {
-  color?: CellColor;
+  cellColor?: CellColor;
   position: CellPosition;
 };
 
@@ -47,7 +47,7 @@ export function isEmptyCell(board: Board, x: number, y: number): boolean {
   if (x >= board.size || y >= board.size) {
     return false;
   }
-  return board.cells[y][x].color == undefined;
+  return board.cells[y][x].cellColor == undefined;
 }
 
 /**
@@ -84,9 +84,9 @@ export function getDirectionCells(
     }
 
     const cell = board.cells[y][x];
-    if (cell.color == undefined) {
+    if (cell.cellColor == undefined) {
       return [];
-    } else if (cell.color == cellColor) {
+    } else if (cell.cellColor == cellColor) {
       foundSameColor = true;
       break;
     } else {
@@ -141,7 +141,7 @@ export function putCell(
   color: CellColor
 ): Cells {
   const newCells = board.cells.map((row) => row.slice());
-  newCells[position.y][position.x] = { position: position, color: color };
+  newCells[position.y][position.x] = { position: position, cellColor: color };
   return newCells;
 }
 
@@ -157,7 +157,7 @@ export function putManyCell(
   let cells = board.cells;
   putCells.forEach((cell) => {
     cells[cell.position.y][cell.position.x] = {
-      color: cellColor,
+      cellColor: cellColor,
       position: cell.position,
     };
   });
@@ -166,12 +166,12 @@ export function putManyCell(
 
 export function reverseCell(board: Board, position: CellPosition): Cells {
   const cell = board.cells[position.y][position.x];
-  if (cell.color == undefined) {
+  if (cell.cellColor == undefined) {
     throw new Error("this cell is empty");
   }
   const newCell: Cell = {
     ...cell,
-    color: cell.color == "white" ? "black" : "white",
+    cellColor: cell.cellColor == "white" ? "black" : "white",
   };
 
   const newCells = board.cells.map((row) => row.slice());
@@ -187,8 +187,8 @@ export function calcScore(board: Board, players: Player[]): Result {
   };
   board.cells.forEach((row) => {
     row.forEach((cell) => {
-      if (cell.color != undefined) {
-        score[cell.color] += 1;
+      if (cell.cellColor != undefined) {
+        score[cell.cellColor] += 1;
       }
     });
   });
@@ -209,6 +209,6 @@ export function calcScore(board: Board, players: Player[]): Result {
  */
 export function isEndGame(board: Board): boolean {
   return (
-    board.cells.flat().filter((cell) => cell.color == undefined).length == 0
+    board.cells.flat().filter((cell) => cell.cellColor == undefined).length == 0
   );
 }

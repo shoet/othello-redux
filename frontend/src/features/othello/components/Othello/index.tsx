@@ -20,7 +20,7 @@ export const Othello = () => {
   } = useOthello();
 
   const handleCliekCell = (cell: Cell, player: Player) => {
-    if (cell.color == undefined) {
+    if (cell.cellColor == undefined) {
       handlePutCell(cell.position, player.cellColor);
     }
   };
