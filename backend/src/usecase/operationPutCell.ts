@@ -88,16 +88,15 @@ export class OperationPutCellUsecase {
       board, // ボードの情報
       board.isEndGame() // 勝ち負け判定
     );
-    await Promise.all([
+    await Promise.all(
       room?.players.map(async (p) => {
         const conn = await this.connectionRepository.getConnection(p.clientID);
-        console.log("conn", conn);
         if (!conn) {
           console.error("connection not found", p.clientID);
           return Promise.resolve();
         }
         await this.webSocketAPIAdapter.sendMessage(conn.connectionID, payload);
-      }),
-    ]);
+      }) || []
+    );
   }
 }
