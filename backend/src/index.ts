@@ -62,7 +62,7 @@ app.post("/join_room", async (c) => {
     .safeParse(body);
   if (!requestBody.success) {
     console.error(requestBody.error.errors);
-    return c.json({ error: "invalid request body" }, 400);
+    return c.json({ error: "bad request" }, 400);
   }
 
   const websocketAdapter = new WebSocketAPIAdapter(env.CALLBACK_URL);
@@ -100,7 +100,7 @@ app.post("/start_game", async (c) => {
     })
     .safeParse(body);
   if (!requestBody.success) {
-    return c.json({ error: "invalid request body" }, 400);
+    return c.json({ error: "bad request" }, 400);
   }
   const { client_id, room_id, board_size } = requestBody.data;
 

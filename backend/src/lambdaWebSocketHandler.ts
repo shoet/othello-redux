@@ -64,7 +64,7 @@ export const connectionHandler: Handler = async (
         };
       }
     case "$disconnect":
-      break;
+      return { statusCode: 200 };
   }
 };
 
@@ -92,7 +92,7 @@ type CustomEventPayload =
         board_id: string;
         client_id: string;
         position: { x: number; y: number };
-        cellColor: CellColor;
+        cell_color: CellColor;
       };
     };
 
@@ -100,7 +100,7 @@ export const customEventHandler: Handler = async (
   event: APIGatewayProxyWebsocketEventV2
 ) => {
   if (!event.body) {
-    return;
+    return { statusCode: 400 };
   }
   const { message } = JSON.parse(event.body);
   const { type, data }: CustomEventPayload = JSON.parse(message);
@@ -123,7 +123,7 @@ export const customEventHandler: Handler = async (
         websocketAdapter
       );
       await startGameUsecase.run(data.client_id, data.room_id, data.board_size);
-      break;
+      return { statusCode: 200 };
     case "operation_put":
       const operationPutCellUsecase = new OperationPutCellUsecase(
         boardRepository,
@@ -132,16 +132,23 @@ export const customEventHandler: Handler = async (
         connectionRepository,
         websocketAdapter
       );
-      await operationPutCellUsecase.run(
-        data.board_id,
-        data.client_id,
-        data.position,
-        data.cellColor
-      );
-      break;
+      try {
+        await operationPutCellUsecase.run(
+          data.board_id,
+          data.client_id,
+          data.position,
+          data.cell_color
+        );
+        return { statusCode: 200 };
+      } catch (e) {
+        console.error("failed to put cell", e);
+        return { statusCode: 500 };
+      }
     case "chat_message":
-      break;
+      console.log("chat_message", data);
+      return { statusCode: 200 };
     default:
       console.log("unknown type", type);
+      return { statusCode: 400 };
   }
 };
