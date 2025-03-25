@@ -1,4 +1,4 @@
-import { CSSProperties } from "react";
+import { CSSProperties, memo } from "react";
 import { Player } from "../../othello";
 import { Disk } from "../Disk";
 import styles from "./index.module.scss";
@@ -7,25 +7,33 @@ import { OthelloGameStatus } from "../../othelloSlice";
 
 type Props = {
   status: OthelloGameStatus;
+  clientID: string | undefined;
   turnPlayer?: Player;
 };
 
-export const OthelloHeader = (props: Props) => {
+const OthelloHeaderComponent = (props: Props) => {
+  const getMessage = (props: Props) => {
+    if (props.status === "prepare") return "ゲームを開始します。";
+    if (props.status === "end") return "ゲームが終了しました。";
+    if (props.turnPlayer) {
+      return props.turnPlayer?.clientID === props.clientID
+        ? "あなたのターンです。"
+        : "相手のターンです。";
+    }
+    return "";
+  };
   const style = {
     "--backgroundColor": theme.othello.backgrounddColor,
   } as CSSProperties;
+  console.log(props.turnPlayer);
   return (
     <div className={styles.header} style={style}>
-      {props.status === "playing" && props.turnPlayer ? (
-        <div>
-          <Disk color={props.turnPlayer.cellColor} />
-          <span
-            className={styles.turn}
-          >{`${props.turnPlayer.clientID}'s Turn`}</span>
-        </div>
-      ) : (
-        <div className={styles.systemMessage}>ゲームを開始します。</div>
+      {props.status === "playing" && props.turnPlayer && (
+        <Disk color={props.turnPlayer.cellColor} />
       )}
+      <div className={styles.message}>{getMessage(props)}</div>
     </div>
   );
 };
+
+export const OthelloHeader = memo(OthelloHeaderComponent);

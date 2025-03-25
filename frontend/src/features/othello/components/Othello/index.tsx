@@ -42,6 +42,7 @@ export const Othello = () => {
   return (
     <div className={styles.othello} style={style}>
       <OthelloHeader
+        clientID={clientID}
         status={gameStatus}
         turnPlayer={players && players[currentPlayerIndex]}
       />
