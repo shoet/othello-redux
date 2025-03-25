@@ -3,7 +3,10 @@ import { useWebSocket } from "../../features/websocket/components/WebSocketConne
 import { useAppDispatch } from "../../hook";
 import { updateProfileAction } from "../../features/websocket/webSocketSlice";
 import { Board, Player } from "../../features/othello/othello";
-import { startGameAction } from "../../features/othello/othelloSlice";
+import {
+  startGameAction,
+  updateBoardAction,
+} from "../../features/othello/othelloSlice";
 
 type ReceiveMessagePayload =
   | { type: "init_profile"; data: { client_id: string } }
@@ -11,9 +14,20 @@ type ReceiveMessagePayload =
   | { type: "system_message"; data: { message: string } }
   | {
       type: "start_game";
-      data: { board: Board; players: Player[]; current_turn_index: 0 };
+      data: {
+        board: Board;
+        board_id: string;
+        players: Player[];
+        current_turn_index: 0;
+      };
     }
-  | { type: "operation"; data: {} };
+  | {
+      type: "update_board";
+      data: {
+        board: Board;
+        is_end_game: boolean;
+      };
+    };
 
 const tryParseMessage = (
   message: string
@@ -57,9 +71,15 @@ export const ReceiveWebSocketMessageContainer = (
         dispatch(
           startGameAction({
             board: data.board,
+            boardID: data.board_id,
             players: data.players,
             currentTurnIndex: data.current_turn_index,
           })
+        );
+        break;
+      case "update_board":
+        dispatch(
+          updateBoardAction({ board: data.board, isEndGame: data.is_end_game })
         );
         break;
       case "system_message":
