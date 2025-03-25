@@ -69,7 +69,7 @@ export class WebSocketAPIAdapter {
         board: board,
         board_id: board.boardID,
         players: players,
-        current_turn_index: 0,
+        current_turn_index: board.getTurnIndex(),
       },
     });
   }
@@ -77,7 +77,11 @@ export class WebSocketAPIAdapter {
   createSendBoardInfoPayload(board: Board, isEndGame: boolean): string {
     return JSON.stringify({
       type: "update_board",
-      data: { board: board, is_end_game: isEndGame },
+      data: {
+        board: board,
+        is_end_game: isEndGame,
+        current_turn_index: board.getTurnIndex(),
+      },
     });
   }
 }

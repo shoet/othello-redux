@@ -52,11 +52,16 @@ export const othelloSlice = createSlice({
     },
     updateBoardAction: (
       state,
-      action: PayloadAction<{ board: Board; isEndGame: boolean }>
+      action: PayloadAction<{
+        board: Board;
+        isEndGame: boolean;
+        currentTurnIndex: number;
+      }>
     ) => {
-      const { board, isEndGame } = action.payload;
+      const { board, isEndGame, currentTurnIndex } = action.payload;
       state.board = board;
       state.status = isEndGame ? "end" : "playing";
+      state.currentPlayerIndex = currentTurnIndex;
     },
     endGameAction: (state) => {
       state.status = "end";

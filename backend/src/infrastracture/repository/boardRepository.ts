@@ -27,12 +27,13 @@ export class BoardRepository extends BaseDynamoDBRepository {
       if (!item) return undefined;
       const boardID = item["board_id"].S;
       const boardSize = Number(item["board_size"].N);
+      const turn = Number(item["turn"].N);
       const data = item["data"].S;
-      if (!boardID || isNaN(boardSize) || !data) {
+      if (!boardID || isNaN(boardSize) || isNaN(turn) || !data) {
         console.log("invalid board", { item });
         return undefined;
       }
-      return Board.fromJSON(boardID, boardSize, data);
+      return Board.fromJSON(boardID, boardSize, turn, data);
     } catch (e) {
       console.error("failed to getBoard", e);
       throw e;
@@ -49,6 +50,7 @@ export class BoardRepository extends BaseDynamoDBRepository {
         board_id: { S: boardDTO.boardID },
         board_size: { N: boardDTO.boardSize.toString() },
         data: { S: boardDTO.data },
+        turn: { N: boardDTO.turn.toString() },
       },
     });
     try {
@@ -66,12 +68,13 @@ export class BoardRepository extends BaseDynamoDBRepository {
       Key: {
         board_id: { S: board.boardID },
       },
-      UpdateExpression: "SET #data = :data",
+      UpdateExpression: "SET #data = :data, turn = :turn",
       ExpressionAttributeNames: {
         "#data": "data",
       },
       ExpressionAttributeValues: {
         ":data": { S: board.toDTO().data },
+        ":turn": { N: board.turn.toString() },
       },
     });
     try {

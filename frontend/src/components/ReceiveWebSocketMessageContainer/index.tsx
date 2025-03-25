@@ -26,6 +26,7 @@ type ReceiveMessagePayload =
       data: {
         board: Board;
         is_end_game: boolean;
+        current_turn_index: number;
       };
     };
 
@@ -79,7 +80,11 @@ export const ReceiveWebSocketMessageContainer = (
         break;
       case "update_board":
         dispatch(
-          updateBoardAction({ board: data.board, isEndGame: data.is_end_game })
+          updateBoardAction({
+            board: data.board,
+            isEndGame: data.is_end_game,
+            currentTurnIndex: data.current_turn_index,
+          })
         );
         break;
       case "system_message":

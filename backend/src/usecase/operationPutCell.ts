@@ -70,8 +70,10 @@ export class OperationPutCellUsecase {
       throw new Error("board not found");
     }
     board.putCell(position, cellColor);
+    // ターンの切り替え
+    board.turnNext();
+    // ボードの更新
     await this.boardRepository.updateBoard(board);
-
     // 履歴の保存
     await this.boardHistoryRepository.createHistory(
       boardID,
