@@ -5,7 +5,6 @@ import {
   CellColor,
   Player,
   Position,
-  RoomID,
   Result,
 } from "./types";
 
@@ -37,14 +36,26 @@ export class Board {
   boardID: BoardID;
   boardSize: number;
   cells: Cell[][];
+  turn: number;
 
-  constructor(boardID: BoardID, boardSize: number, cells: Cell[][]) {
+  constructor(
+    boardID: BoardID,
+    boardSize: number,
+    turn: number,
+    cells: Cell[][]
+  ) {
     this.boardID = boardID;
     this.boardSize = boardSize;
+    this.turn = turn;
     this.cells = cells;
   }
 
-  static fromJSON(boardID: BoardID, boardSize: number, body: string): Board {
+  static fromJSON(
+    boardID: BoardID,
+    boardSize: number,
+    turn: number,
+    body: string
+  ): Board {
     const rows = JSON.parse(body);
     if (!Array.isArray(rows))
       throw new Error("invalid board contents: not an array");
@@ -55,7 +66,7 @@ export class Board {
         if (!Board.isCell(cell)) throw new Error("invalid cell contents");
       }
     }
-    return new Board(boardID, boardSize, rows);
+    return new Board(boardID, boardSize, turn, rows);
   }
 
   static isCell(cell: any): cell is Cell {
@@ -77,13 +88,14 @@ export class Board {
         cellColor: null,
       }))
     );
-    return new Board(boardID, boardSize, cells);
+    return new Board(boardID, boardSize, 0, cells);
   }
 
   toDTO(): BoardDTO {
     return {
       boardID: this.boardID,
       boardSize: this.boardSize,
+      turn: this.turn,
       data: JSON.stringify(this.cells),
     };
   }
@@ -198,6 +210,14 @@ export class Board {
         cells: directionCells,
       };
     });
+  }
+
+  turnNext(): void {
+    this.turn++;
+  }
+
+  getTurnIndex(): number {
+    return this.turn % 2;
   }
 
   isEndGame(): boolean {

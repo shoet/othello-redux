@@ -15,6 +15,7 @@ export type OthelloState = {
   status: OthelloGameStatus;
   roomID?: string;
   board: Board;
+  boardID?: string;
   currentPlayerIndex: number;
   players?: Player[];
   result?: Result;
@@ -37,15 +38,33 @@ export const othelloSlice = createSlice({
       state: OthelloState,
       aciton: PayloadAction<{
         board: Board;
+        boardID: string;
         players: Player[];
         currentTurnIndex: number;
       }>
     ) => {
-      const { board, players, currentTurnIndex } = aciton.payload;
+      const { board, players, currentTurnIndex, boardID } = aciton.payload;
       state.board = board;
+      state.boardID = boardID;
       state.players = players;
       state.status = "playing";
       state.currentPlayerIndex = currentTurnIndex;
+    },
+    updateBoardAction: (
+      state,
+      action: PayloadAction<{
+        board: Board;
+        isEndGame: boolean;
+        currentTurnIndex: number;
+      }>
+    ) => {
+      const { board, isEndGame, currentTurnIndex } = action.payload;
+      state.board = board;
+      state.status = isEndGame ? "end" : "playing";
+      state.currentPlayerIndex = currentTurnIndex;
+    },
+    endGameAction: (state) => {
+      state.status = "end";
     },
     putCellAction: (
       state: OthelloState,
@@ -99,5 +118,7 @@ export const {
   reverseCellAction,
   calcScoreAction,
   startGameAction,
+  updateBoardAction,
+  endGameAction,
 } = othelloSlice.actions;
 export const othelloReducer = othelloSlice.reducer;

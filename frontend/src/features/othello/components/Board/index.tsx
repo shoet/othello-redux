@@ -28,7 +28,7 @@ export const Board = (props: Props) => {
               key={`${rowIdx}-${colIdx}`}
               onClick={() => handleClickCell(cell)}
             >
-              {cell.color ? <Disk color={cell.color} /> : null}
+              {cell.cellColor ? <Disk color={cell.cellColor} /> : null}
             </div>
           ))
         )}

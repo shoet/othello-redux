@@ -7,9 +7,6 @@ import { ConnectionRepository } from "./infrastracture/repository/connectionRepo
 import { RoomRepository } from "./infrastracture/repository/roomRepository";
 import { StartGameUsecase } from "./usecase/startGame";
 import { BoardRepository } from "./infrastracture/repository/boardRepository";
-import { OperationPutCellUsecase } from "./usecase/operationPutCell";
-import { BoardHistoryRepository } from "./infrastracture/repository/boardHistoryRepository";
-import { CellColor } from "./domain/types";
 
 var environment = z.object({
   CONNECTION_TABLE_NAME: z.string().min(1),
@@ -64,7 +61,7 @@ export const connectionHandler: Handler = async (
         };
       }
     case "$disconnect":
-      break;
+      return { statusCode: 200 };
   }
 };
 
@@ -85,22 +82,13 @@ type CustomEventPayload =
         room_id: string;
         board_size: number;
       };
-    }
-  | {
-      type: "operation_put";
-      data: {
-        board_id: string;
-        client_id: string;
-        position: { x: number; y: number };
-        cellColor: CellColor;
-      };
     };
 
 export const customEventHandler: Handler = async (
   event: APIGatewayProxyWebsocketEventV2
 ) => {
   if (!event.body) {
-    return;
+    return { statusCode: 400 };
   }
   const { message } = JSON.parse(event.body);
   const { type, data }: CustomEventPayload = JSON.parse(message);
@@ -110,9 +98,6 @@ export const customEventHandler: Handler = async (
   );
   const boardRepository = new BoardRepository(env.BOARD_TABLE_NAME);
   const roomRepository = new RoomRepository(env.ROOM_TABLE_NAME);
-  const boardHistoryRepository = new BoardHistoryRepository(
-    env.BOARD_HISTORY_TABLE_NAME
-  );
 
   switch (type) {
     case "start_game":
@@ -123,25 +108,12 @@ export const customEventHandler: Handler = async (
         websocketAdapter
       );
       await startGameUsecase.run(data.client_id, data.room_id, data.board_size);
-      break;
-    case "operation_put":
-      const operationPutCellUsecase = new OperationPutCellUsecase(
-        boardRepository,
-        boardHistoryRepository,
-        roomRepository,
-        connectionRepository,
-        websocketAdapter
-      );
-      await operationPutCellUsecase.run(
-        data.board_id,
-        data.client_id,
-        data.position,
-        data.cellColor
-      );
-      break;
+      return { statusCode: 200 };
     case "chat_message":
-      break;
+      console.log("chat_message", data);
+      return { statusCode: 200 };
     default:
       console.log("unknown type", type);
+      return { statusCode: 400 };
   }
 };

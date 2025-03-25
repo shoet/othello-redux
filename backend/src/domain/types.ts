@@ -29,6 +29,7 @@ export type BoardID = string;
 export type BoardDTO = {
   boardID: BoardID;
   boardSize: number;
+  turn: number;
   data: string;
 };
 

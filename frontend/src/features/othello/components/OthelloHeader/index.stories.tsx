@@ -6,6 +6,7 @@ export default {
   title: "OthelloHeader",
   component: OthelloHeader,
   args: {
+    clientID: "shoet",
     turnPlayer: {
       clientID: "shoet",
       cellColor: "black",

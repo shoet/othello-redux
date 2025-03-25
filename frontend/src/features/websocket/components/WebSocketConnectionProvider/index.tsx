@@ -6,6 +6,7 @@ type WebSocketContextValue = {
   disconnect: () => void;
   registerCallback: (name: string, cb: (message: string) => void) => void;
   removeCallback: (name: string) => void;
+  sendCustomMessage: (message: string) => void;
 };
 
 const WebSocketContext = createContext<WebSocketContextValue>({
@@ -13,6 +14,7 @@ const WebSocketContext = createContext<WebSocketContextValue>({
   disconnect: () => {},
   registerCallback: () => {},
   removeCallback: () => {},
+  sendCustomMessage: () => {},
 });
 
 export const useWebSocket = () => useContext(WebSocketContext);
@@ -43,6 +45,10 @@ export const WebSocketContextProvider = (props: {
     connection?.removeMessageCb(name);
   };
 
+  const sendCustomMessage = (message: string) => {
+    connection?.sendCustomMessage(message);
+  };
+
   return (
     <WebSocketContext.Provider
       value={{
@@ -50,6 +56,7 @@ export const WebSocketContextProvider = (props: {
         disconnect,
         registerCallback,
         removeCallback,
+        sendCustomMessage,
       }}
     >
       {props.children}
