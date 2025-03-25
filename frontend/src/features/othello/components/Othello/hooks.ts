@@ -1,7 +1,7 @@
 import { putCellAction } from "../../othelloSlice";
 import { useAppDispatch, useAppSelector } from "../../../../hook";
 import { CellColor, CellPosition } from "../../othello";
-import { useWebSocket } from "../../../websocket/components/WebSocketConnectionProvider";
+import { putCell } from "../../../../services/putCell";
 
 export const useOthello = () => {
   const dispatch = useAppDispatch();
@@ -16,7 +16,6 @@ export const useOthello = () => {
   const currentPlayerIndex = useAppSelector(
     (state) => state.othelloReducer.currentPlayerIndex
   );
-  const { sendCustomMessage } = useWebSocket();
 
   const handlePutCell = async (position: CellPosition, color: CellColor) => {
     // クライアントサイドで石を配置する
@@ -30,16 +29,7 @@ export const useOthello = () => {
       return;
     }
     // サーバーに石の配置を通知する
-    const payload = {
-      type: "operation_put",
-      data: {
-        board_id: boardID,
-        client_id: clientID,
-        position: position,
-        cell_color: color,
-      },
-    };
-    sendCustomMessage(JSON.stringify(payload));
+    await putCell(boardID, clientID, position, color);
   };
 
   return {

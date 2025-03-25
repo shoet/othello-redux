@@ -8,6 +8,8 @@ import { JoinRoomUsecase } from "./usecase/joinRoom";
 import { BoardRepository } from "./infrastracture/repository/boardRepository";
 import { cors } from "hono/cors";
 import { ClientIDIsNotMember, StartGameUsecase } from "./usecase/startGame";
+import { OperationPutCellUsecase } from "./usecase/operationPutCell";
+import { BoardHistoryRepository } from "./infrastracture/repository/boardHistoryRepository";
 
 var environment = z.object({
   CONNECTION_TABLE_NAME: z.string().min(1),
@@ -127,6 +129,48 @@ app.post("/start_game", async (c) => {
     console.error("unexpected error", e);
     return c.json({ error: "Internal Server Error" }, 500);
   }
+});
+
+app.post("/put_cell", async (c) => {
+  const body = await c.req.json();
+  const requestBody = z
+    .object({
+      board_id: z.string().min(1),
+      client_id: z.string().min(1),
+      position: z.object({ x: z.number(), y: z.number() }),
+      cell_color: z.enum(["white", "black"]),
+    })
+    .safeParse(body);
+  if (!requestBody.success) {
+    return c.json({ error: "bad request" }, 400);
+  }
+  const boardRepository = new BoardRepository(env.BOARD_TABLE_NAME);
+  const boardHistoryRepository = new BoardHistoryRepository(
+    env.BOARD_HISTORY_TABLE_NAME
+  );
+  const roomRepository = new RoomRepository(env.ROOM_TABLE_NAME);
+  const websocketAdapter = new WebSocketAPIAdapter(env.CALLBACK_URL);
+  const connecitonRepository = new ConnectionRepository(
+    env.CONNECTION_TABLE_NAME
+  );
+
+  const usecase = new OperationPutCellUsecase(
+    boardRepository,
+    boardHistoryRepository,
+    roomRepository,
+    connecitonRepository,
+    websocketAdapter
+  );
+
+  const request = requestBody.data;
+  await usecase.run(
+    request.board_id,
+    request.client_id,
+    request.position,
+    request.cell_color
+  );
+
+  return c.json({ message: "ok" }, 200);
 });
 
 export default app;

@@ -7,9 +7,6 @@ import { ConnectionRepository } from "./infrastracture/repository/connectionRepo
 import { RoomRepository } from "./infrastracture/repository/roomRepository";
 import { StartGameUsecase } from "./usecase/startGame";
 import { BoardRepository } from "./infrastracture/repository/boardRepository";
-import { OperationPutCellUsecase } from "./usecase/operationPutCell";
-import { BoardHistoryRepository } from "./infrastracture/repository/boardHistoryRepository";
-import { CellColor } from "./domain/types";
 
 var environment = z.object({
   CONNECTION_TABLE_NAME: z.string().min(1),
@@ -85,15 +82,6 @@ type CustomEventPayload =
         room_id: string;
         board_size: number;
       };
-    }
-  | {
-      type: "operation_put";
-      data: {
-        board_id: string;
-        client_id: string;
-        position: { x: number; y: number };
-        cell_color: CellColor;
-      };
     };
 
 export const customEventHandler: Handler = async (
@@ -110,9 +98,6 @@ export const customEventHandler: Handler = async (
   );
   const boardRepository = new BoardRepository(env.BOARD_TABLE_NAME);
   const roomRepository = new RoomRepository(env.ROOM_TABLE_NAME);
-  const boardHistoryRepository = new BoardHistoryRepository(
-    env.BOARD_HISTORY_TABLE_NAME
-  );
 
   switch (type) {
     case "start_game":
@@ -124,26 +109,6 @@ export const customEventHandler: Handler = async (
       );
       await startGameUsecase.run(data.client_id, data.room_id, data.board_size);
       return { statusCode: 200 };
-    case "operation_put":
-      const operationPutCellUsecase = new OperationPutCellUsecase(
-        boardRepository,
-        boardHistoryRepository,
-        roomRepository,
-        connectionRepository,
-        websocketAdapter
-      );
-      try {
-        await operationPutCellUsecase.run(
-          data.board_id,
-          data.client_id,
-          data.position,
-          data.cell_color
-        );
-        return { statusCode: 200 };
-      } catch (e) {
-        console.error("failed to put cell", e);
-        return { statusCode: 500 };
-      }
     case "chat_message":
       console.log("chat_message", data);
       return { statusCode: 200 };
