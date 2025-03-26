@@ -44,6 +44,9 @@ export class Board {
     turn: number,
     cells: Cell[][]
   ) {
+    if (boardSize % 2 !== 0) {
+      throw new Error("boardSize must be even number");
+    }
     this.boardID = boardID;
     this.boardSize = boardSize;
     this.turn = turn;
@@ -89,6 +92,32 @@ export class Board {
       }))
     );
     return new Board(boardID, boardSize, 0, cells);
+  }
+
+  initialize(): void {
+    const center = Math.floor(this.boardSize / 2);
+    const cells: Cell[] = [
+      {
+        position: { x: center - 1, y: center - 1 },
+        cellColor: "white",
+      },
+      {
+        position: { x: center, y: center - 1 },
+        cellColor: "black",
+      },
+      {
+        position: { x: center - 1, y: center },
+        cellColor: "black",
+      },
+      {
+        position: { x: center, y: center },
+        cellColor: "white",
+      },
+    ];
+    cells.forEach((c) => {
+      if (c.cellColor === null) return;
+      this.putCell(c.position, c.cellColor);
+    });
   }
 
   toDTO(): BoardDTO {
