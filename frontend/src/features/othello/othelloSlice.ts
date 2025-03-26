@@ -75,6 +75,7 @@ export const othelloSlice = createSlice({
       const { position, cellColor } = action.payload;
       const newCells = putCell(state.board, position, cellColor);
       state.board.cells = newCells;
+      state.isTurnPutted = true;
     },
   },
 });
