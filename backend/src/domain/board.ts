@@ -283,6 +283,10 @@ export class Board {
     );
   }
 
+  isSkip(color: CellColor) {
+    return this.getPutAbleCelles(color).length === 0;
+  }
+
   calcScore(players: Player[]): Result {
     let score: Record<CellColor, number> = {
       black: 0,

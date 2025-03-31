@@ -1,13 +1,6 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
 import type { Board, Player, Result, CellPosition, CellColor } from "./othello";
-import {
-  getEmptyBoard,
-  getAroundSandwitchedCells,
-  putCell,
-  isEndGame,
-  putManyCell,
-  calcScore,
-} from "./othello";
+import { getEmptyBoard, putCell } from "./othello";
 
 export type OthelloGameStatus = "prepare" | "playing" | "end";
 
@@ -64,6 +57,7 @@ export const othelloSlice = createSlice({
       state.board = board;
       state.status = isEndGame ? "end" : "playing";
       state.currentPlayerIndex = currentTurnIndex;
+      state.isTurnPutted = false;
     },
     endGameAction: (state) => {
       state.status = "end";
