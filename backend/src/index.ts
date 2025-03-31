@@ -10,6 +10,7 @@ import { cors } from "hono/cors";
 import { ClientIDIsNotMember, StartGameUsecase } from "./usecase/startGame";
 import { OperationPutCellUsecase } from "./usecase/operationPutCell";
 import { BoardHistoryRepository } from "./infrastracture/repository/boardHistoryRepository";
+import { GetPutableUsecase } from "./usecase/getPutable";
 
 var environment = z.object({
   CONNECTION_TABLE_NAME: z.string().min(1),
@@ -129,6 +130,31 @@ app.post("/start_game", async (c) => {
     console.error("unexpected error", e);
     return c.json({ error: "Internal Server Error" }, 500);
   }
+});
+
+app.post("/get_putable", async (c) => {
+  const body = await c.req.json();
+  const requestBody = z
+    .object({
+      board_id: z.string().min(1),
+      position: z.object({ x: z.number(), y: z.number() }),
+      cell_color: z.enum(["white", "black"]),
+    })
+    .safeParse(body);
+  if (!requestBody.success) {
+    return c.json({ error: "bad request" }, 400);
+  }
+  const boardRepository = new BoardRepository(env.BOARD_TABLE_NAME);
+
+  const usecase = new GetPutableUsecase(boardRepository);
+
+  const request = requestBody.data;
+  const putable = await usecase.run(
+    request.board_id,
+    request.position,
+    request.cell_color
+  );
+  return c.json({ putable }, 200);
 });
 
 app.post("/put_cell", async (c) => {
