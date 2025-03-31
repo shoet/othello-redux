@@ -2,6 +2,7 @@ import { putCellAction } from "../../othelloSlice";
 import { useAppDispatch, useAppSelector } from "../../../../hook";
 import { CellColor, CellPosition } from "../../othello";
 import { putCell } from "../../../../services/putCell";
+import { getPutable } from "../../../../services/getPutable";
 
 export const useOthello = () => {
   const dispatch = useAppDispatch();
@@ -21,9 +22,6 @@ export const useOthello = () => {
   );
 
   const handlePutCell = async (position: CellPosition, color: CellColor) => {
-    // クライアントサイドで石を配置する
-    if (isTurnPutted) return;
-    dispatch(putCellAction({ position: position, cellColor: color }));
     if (!boardID) {
       console.error("boardID not found");
       return;
@@ -32,6 +30,18 @@ export const useOthello = () => {
       console.error("clientID not found");
       return;
     }
+
+    // 石の配置をチェック
+    const putable = await getPutable(boardID, position, color);
+    if (!putable) {
+      console.error("cannot put cell");
+      return;
+    }
+
+    // クライアントサイドで石を配置する
+    if (isTurnPutted) return;
+
+    dispatch(putCellAction({ position: position, cellColor: color }));
     // サーバーに石の配置を通知する
     await putCell(boardID, clientID, position, color);
   };

@@ -64,11 +64,17 @@ export class OperationPutCellUsecase {
     position: Position,
     cellColor: CellColor
   ): Promise<void> {
-    // 石の配置
     const board = await this.boardRepository.getBoard(boardID);
     if (!board) {
       throw new Error("board not found");
     }
+
+    const room = await this.roomRepository.getByBoardID(boardID);
+    if (!room) {
+      throw new Error("room not found");
+    }
+
+    // 石の配置
     board.putCell(position, cellColor);
     // ターンの切り替え
     board.turnNext();
@@ -84,11 +90,26 @@ export class OperationPutCellUsecase {
       cellColor
     );
 
-    // ルームに通知
-    const room = await this.roomRepository.getByBoardID(boardID);
+    let isEndgame = board.isEndGame();
+
+    // 次ターンのプレイヤーが石を置けない場合はスキップ
+    let nextPlayer = room.players[board.getTurnIndex()];
+    let isSkip = board.isSkip(nextPlayer.cellColor);
+    if (isSkip) {
+      // スキップ
+      board.turnNext();
+      // その次ターンのプレイヤーも石を置けない場合はゲーム終了
+      nextPlayer = room.players[board.getTurnIndex()];
+      isSkip = board.isSkip(nextPlayer.cellColor);
+      if (isSkip) {
+        isEndgame = true;
+      }
+    }
+
+    // ルームにボード情報と勝ち負け判定を通知
     const payload = this.webSocketAPIAdapter.createSendBoardInfoPayload(
-      board, // ボードの情報
-      board.isEndGame() // 勝ち負け判定
+      board,
+      isEndgame
     );
     await Promise.all(
       room?.players.map(async (p) => {

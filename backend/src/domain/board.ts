@@ -241,6 +241,34 @@ export class Board {
     });
   }
 
+  // isPutableCell は、positionにcolorの石が配置可能か判定する
+  isPutableCell(position: Position, color: CellColor): boolean {
+    const putable = this.getPutAbleCelles(color);
+    const find = putable.find((cell) => {
+      return cell.position.x == position.x && cell.position.y == position.y;
+    });
+    return find !== undefined;
+  }
+
+  // getPutAbleCelles は、空きマスを走査し、colorに対して配置可能なマスだけを取得する
+  private getPutAbleCelles(color: CellColor) {
+    const putableCells: Cell[] = [];
+    this.cells.forEach((row) => {
+      row.forEach((cell) => {
+        if (cell.cellColor === null) {
+          const putable =
+            this.getAroundSandwitchedCells(cell.position, color)
+              .map((d) => d.cells)
+              .flat().length > 0;
+          if (putable) {
+            putableCells.push(cell);
+          }
+        }
+      });
+    });
+    return putableCells;
+  }
+
   turnNext(): void {
     this.turn++;
   }
@@ -253,6 +281,10 @@ export class Board {
     return (
       this.cells.flat().filter((cell) => cell.cellColor === null).length === 0
     );
+  }
+
+  isSkip(color: CellColor) {
+    return this.getPutAbleCelles(color).length === 0;
   }
 
   calcScore(players: Player[]): Result {
