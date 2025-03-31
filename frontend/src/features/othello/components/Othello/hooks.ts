@@ -16,9 +16,13 @@ export const useOthello = () => {
   const currentPlayerIndex = useAppSelector(
     (state) => state.othelloReducer.currentPlayerIndex
   );
+  const isTurnPutted = useAppSelector(
+    (state) => state.othelloReducer.isTurnPutted
+  );
 
   const handlePutCell = async (position: CellPosition, color: CellColor) => {
     // クライアントサイドで石を配置する
+    if (isTurnPutted) return;
     dispatch(putCellAction({ position: position, cellColor: color }));
     if (!boardID) {
       console.error("boardID not found");

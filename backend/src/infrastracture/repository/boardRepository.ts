@@ -43,6 +43,7 @@ export class BoardRepository extends BaseDynamoDBRepository {
   async createBoard(boardSize: number): Promise<Board> {
     const boardID = crypto.randomUUID();
     const board = Board.fromEmpty(boardID, boardSize);
+    board.initialize();
     const boardDTO = board.toDTO();
     const putCommand = new PutItemCommand({
       TableName: this.ddbTableName,

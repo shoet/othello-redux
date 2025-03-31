@@ -19,6 +19,7 @@ export type OthelloState = {
   currentPlayerIndex: number;
   players?: Player[];
   result?: Result;
+  isTurnPutted: boolean;
 };
 
 export const DEFAULT_BOARD_SIZE = 8;
@@ -28,6 +29,7 @@ const initState: OthelloState = {
   board: getEmptyBoard(DEFAULT_BOARD_SIZE),
   players: [],
   currentPlayerIndex: 0,
+  isTurnPutted: false,
 };
 
 export const othelloSlice = createSlice({
@@ -73,50 +75,13 @@ export const othelloSlice = createSlice({
       const { position, cellColor } = action.payload;
       const newCells = putCell(state.board, position, cellColor);
       state.board.cells = newCells;
-    },
-    termAction: (state) => {
-      if (!state.players) return;
-      const nextPlayerIndex =
-        (state.currentPlayerIndex + 1) % state.players.length;
-      state.currentPlayerIndex = nextPlayerIndex;
-    },
-    reverseCellAction: (
-      state,
-      action: PayloadAction<{
-        putedPosition: CellPosition;
-        putedColor: CellColor;
-      }>
-    ) => {
-      const { putedPosition, putedColor } = action.payload;
-      const targetCells = getAroundSandwitchedCells(
-        state.board,
-        putedPosition,
-        putedColor
-      )
-        .map((directionWithCells) => {
-          return directionWithCells.cells;
-        })
-        .flat();
-
-      const newCells = putManyCell(state.board, targetCells, putedColor);
-      state.board.cells = newCells;
-    },
-    calcScoreAction: (state) => {
-      const endgame = isEndGame(state.board);
-      console.log(endgame);
-      if (state.players && isEndGame(state.board)) {
-        const result = calcScore(state.board, state.players);
-        state.result = result;
-      }
+      state.isTurnPutted = true;
     },
   },
 });
 
 export const {
   putCellAction,
-  termAction,
-  reverseCellAction,
-  calcScoreAction,
   startGameAction,
   updateBoardAction,
   endGameAction,
