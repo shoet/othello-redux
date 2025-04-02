@@ -7,9 +7,11 @@
     │   └── table
     └── (othelloセグメント) /
         ├── layout.tsx/
-        │   └── [WebSocketProvider]
+        │   └── [WebSocketContextProvider]/ - WebSocketのconnectionを保持・APIを提供
+        │       └── [OthelloContextProvider]/ - オセロゲームの状態を保持・APIを提供
+        │           └── [ReceiveWebSocketMessageContainer] - WebSocketの受信メッセージを受け取った際のロジックを定義
         ├── EntryPage - 入室ページ/
-        │   └── EntryForm/
+        │   └── EntryForm/ - useContextからAPIを実行
         │       ├── input ClientID
         │       ├── input RoomID
         │       └── button Submit
