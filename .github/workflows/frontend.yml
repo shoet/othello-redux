@@ -58,7 +58,7 @@ jobs:
         run: npm run build
 
       - name: cache cdk node_modules for AWSCDK
-        id: cache-node-modules
+        id: cache-node-modules-cdk
         uses: actions/cache@v4
         with:
           path: frontend/cdk/node_modules
