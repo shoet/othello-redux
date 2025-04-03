@@ -43,18 +43,19 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v4
         with:
-          path: cdk/node_modules
-          key: node-${{ runner.os }}-${{ hashFiles('cdk/package-lock.json') }}
+          path: frontend/cdk/node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('frontend/cdk/package-lock.json') }}
           restore-keys: |
             node-${{ runner.os }}-
 
       - name: setup node_modules
-        working-directory: cdk
+        working-directory: frontend/cdk
         run: npm ci
 
       - name: build
+        working-directory: frontend
         run: npm run build
 
       - name: deploy
-        working-directory: cdk
+        working-directory: frontend/cdk
         run: npm run cdk -- deploy -c STAGE=dev --require-approval never
