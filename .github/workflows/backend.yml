@@ -1,10 +1,10 @@
-name: FrontendWorkflow
+name: BackendWorkflow
 on:
   push:
     paths:
-      - ".github/workflows/frontend.yml"
+      - ".github/workflows/backend.yml"
       - ".github/actions/**"
-      - "frontend/**"
+      - "backend/**"
 
 jobs:
   deploy-development:
@@ -14,7 +14,6 @@ jobs:
 
     environment:
       name: development
-      url: https://othello-sp-dev.app.shoet.team/
 
     runs-on: ubuntu-latest
 
@@ -26,7 +25,6 @@ jobs:
       OIDC_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-      BACKEND_STACK_NAME: ${{ secrets.BACKEND_STACK_NAME }}
 
     steps:
       - name: checkout
@@ -47,48 +45,28 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v4
         with:
-          path: frontend/node_modules
-          key: node-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
+          path: backend/node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             node-${{ runner.os }}-
 
       - name: setup node_modules
-        working-directory: frontend
+        working-directory: backend
         run: npm ci
-
-      - name: configure env
-        run: |
-          stacks=$(aws cloudformation describe-stacks \
-            --stack-name ${{ env.BACKEND_STACK_NAME }} \
-            --query "Stacks[0].Outputs" --output json)
-          for i in $(echo $stacks | jq -r 'keys[]'); do
-            key=$(echo $stacks | jq -r ".[${i}].OutputKey")
-            value=$(echo $stacks | jq -r ".[${i}].OutputValue")
-            if [[ $key == "WebSocketApiURL"  ]]; then
-              echo "VITE_WEB_SOCKET_API_HOST=$value" >> $GITHUB_ENV
-            fi
-            if [[ $key == "HTTPApiURL" ]]; then
-              echo "VITE_HTTP_API_HOST=$value" >> $GITHUB_ENV
-            fi
-          done
-
-      - name: build
-        working-directory: frontend
-        run: npm run build
 
       - name: cache cdk node_modules for AWSCDK
         id: cache-node-modules-cdk
         uses: actions/cache@v4
         with:
-          path: frontend/cdk/node_modules
-          key: node-${{ runner.os }}-${{ hashFiles('frontend/cdk/package-lock.json') }}
+          path: backend/cdk/node_modules
+          key: node-${{ runner.os }}-cdk-${{ hashFiles('cdk/package-lock.json') }}
           restore-keys: |
-            node-${{ runner.os }}-cdk
+            node-${{ runner.os }}-cdk-
 
       - name: setup node_modules for AWSCDK
-        working-directory: frontend/cdk
+        working-directory: backend/cdk
         run: npm ci
 
       - name: deploy
-        working-directory: frontend/cdk
+        working-directory: backend/cdk
         run: npm run cdk -- deploy -c STAGE=dev --require-approval never

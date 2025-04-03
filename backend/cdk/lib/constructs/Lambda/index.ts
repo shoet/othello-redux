@@ -24,6 +24,9 @@ export class Lambda extends Construct {
         handler: "handler",
         runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(30),
+        bundling: {
+          forceDockerBundling: false,
+        },
         environment: {
           CONNECTION_TABLE_NAME: props.connection_table_name,
           ROOM_TABLE_NAME: props.room_table_name,
@@ -48,6 +51,9 @@ export class Lambda extends Construct {
         handler: "connectionHandler",
         runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(30),
+        bundling: {
+          forceDockerBundling: false,
+        },
         environment: {
           CONNECTION_TABLE_NAME: props.connection_table_name,
           ROOM_TABLE_NAME: props.room_table_name,
@@ -65,6 +71,9 @@ export class Lambda extends Construct {
         handler: "customEventHandler",
         runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
         timeout: cdk.Duration.seconds(30),
+        bundling: {
+          forceDockerBundling: false,
+        },
         environment: webSocketLambdaEnvironment,
       }
     );
