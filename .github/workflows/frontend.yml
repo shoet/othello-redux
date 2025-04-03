@@ -44,18 +44,31 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v4
         with:
-          path: frontend/cdk/node_modules
-          key: node-${{ runner.os }}-${{ hashFiles('frontend/cdk/package-lock.json') }}
+          path: frontend/node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('frontend/package-lock.json') }}
           restore-keys: |
             node-${{ runner.os }}-
 
       - name: setup node_modules
-        working-directory: frontend/cdk
+        working-directory: frontend
         run: npm ci
 
       - name: build
         working-directory: frontend
         run: npm run build
+
+      - name: cache cdk node_modules for AWSCDK
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: frontend/cdk/node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('frontend/cdk/package-lock.json') }}
+          restore-keys: |
+            node-${{ runner.os }}-cdk
+
+      - name: setup node_modules for AWSCDK
+        working-directory: frontend/cdk
+        run: npm ci
 
       - name: deploy
         working-directory: frontend/cdk
