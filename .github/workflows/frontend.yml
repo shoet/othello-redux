@@ -72,10 +72,7 @@ jobs:
 
       - name: build
         working-directory: frontend
-        run: |
-          echo "VITE_WEB_SOCKET_API_HOST=$VITE_WEB_SOCKET_API_HOST"
-          echo "VITE_HTTP_API_HOST=$VITE_HTTP_API_HOST"
-          npm run build
+        run: npm run build
 
       - name: cache cdk node_modules for AWSCDK
         id: cache-node-modules-cdk
