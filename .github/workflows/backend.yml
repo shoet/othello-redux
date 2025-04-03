@@ -1,8 +1,10 @@
 name: BackendWorkflow
 on:
   push:
-paths:
-  - "backend/**"
+    paths:
+      - ".github/workflows/backend.yml"
+      - ".github/actions/**"
+      - "backend/**"
 
 jobs:
   deploy-development:

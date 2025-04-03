@@ -2,7 +2,8 @@ name: FrontendWorkflow
 on:
   push:
     paths:
-      - ".github/**"
+      - ".github/workflows/frontend.yml"
+      - ".github/actions/**"
       - "frontend/**"
 
 jobs:
