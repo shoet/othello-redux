@@ -2,7 +2,7 @@ name: FrontendWorkflow
 on:
   push:
     paths:
-      - ".github/workflows/**"
+      - ".github/**"
       - "frontend/**"
 
 jobs:
@@ -24,6 +24,7 @@ jobs:
       OIDC_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      BACKEND_STACK_NAME: ${{ secrets.BACKEND_STACK_NAME }}
 
     steps:
       - name: checkout
@@ -53,9 +54,28 @@ jobs:
         working-directory: frontend
         run: npm ci
 
+      - name: configure env
+        run: |
+          stacks=$(aws cloudformation describe-stacks \
+            --stack-name ${{ env.BACKEND_STACK_NAME }} \
+            --query "Stacks[0].Outputs" --output json)
+          for i in $(echo $stacks | jq -r 'keys[]'); do
+            key=$(echo $stacks | jq -r ".[${i}].OutputKey")
+            value=$(echo $stacks | jq -r ".[${i}].OutputValue")
+            if [[ $key == "WebSocketApiURL"  ]]; then
+              echo "VITE_WEB_SOCKET_API_HOST=$value" >> $GITHUB_ENV
+            fi
+            if [[ $key == "HTTPApiURL" ]]; then
+              echo "VITE_HTTP_API_HOST=$value" >> $GITHUB_ENV
+            fi
+          done
+
       - name: build
         working-directory: frontend
-        run: npm run build
+        run: |
+          echo "VITE_WEB_SOCKET_API_HOST=$VITE_WEB_SOCKET_API_HOST"
+          echo "VITE_HTTP_API_HOST=$VITE_HTTP_API_HOST"
+          npm run build
 
       - name: cache cdk node_modules for AWSCDK
         id: cache-node-modules-cdk
