@@ -90,6 +90,8 @@ export class OthelloFrontendStack extends cdk.Stack {
       {
         sources: [cdk.aws_s3_deployment.Source.asset(`${cdkRoot}/../dist`)],
         destinationBucket: sourceBucket,
+        distribution: cloudFrontDistribution,
+        distributionPaths: ["/*"],
       }
     );
 
