@@ -45,12 +45,25 @@ jobs:
         id: cache-node-modules
         uses: actions/cache@v4
         with:
-          path: backend/cdk/node_modules
-          key: node-${{ runner.os }}-${{ hashFiles('cdk/package-lock.json') }}
+          path: backend/node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
           restore-keys: |
             node-${{ runner.os }}-
 
       - name: setup node_modules
+        working-directory: backend
+        run: npm ci
+
+      - name: cache cdk node_modules for AWSCDK
+        id: cache-node-modules-cdk
+        uses: actions/cache@v4
+        with:
+          path: backend/cdk/node_modules
+          key: node-${{ runner.os }}-cdk-${{ hashFiles('cdk/package-lock.json') }}
+          restore-keys: |
+            node-${{ runner.os }}-cdk-
+
+      - name: setup node_modules for AWSCDK
         working-directory: backend/cdk
         run: npm ci
 
