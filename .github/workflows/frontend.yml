@@ -1,0 +1,60 @@
+name: FrontendWorkflow
+on:
+  push:
+paths:
+  - "frontend/**"
+
+jobs:
+  deploy-development:
+    if: ${{ startsWith(github.ref, 'refs/heads/feature') }}
+
+    timeout-minutes: 30
+
+    environment:
+      name: development
+
+    runs-on: ubuntu-latest
+
+    permissions:
+      id-token: write
+
+    env:
+      BRANCH: ${{ github.ref }}
+      OIDC_ROLE_ARN: ${{ secrets.AWS_OIDC_ROLE_ARN }}
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: configure aws credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ env.OIDC_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+          mask-aws-account-id: true
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: cache cdk node_modules
+        id: cache-node-modules
+        uses: actions/cache@v4
+        with:
+          path: cdk/node_modules
+          key: node-${{ runner.os }}-${{ hashFiles('cdk/package-lock.json') }}
+          restore-keys: |
+            node-${{ runner.os }}-
+
+      - name: setup node_modules
+        working-directory: cdk
+        run: npm ci
+
+      - name: build
+        run: npm run build
+
+      - name: deploy
+        working-directory: cdk
+        run: npm run cdk -- deploy -c STAGE=dev --require-approval never
