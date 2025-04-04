@@ -8,8 +8,10 @@
     "@aws-sdk/client-apigatewaymanagementapi": "^3.758.0",
     "@aws-sdk/client-cloudformation": "^3.758.0",
     "@aws-sdk/client-dynamodb": "^3.758.0",
+    "@langchain/openai": "^0.5.2",
     "aws-lambda": "^1.0.7",
-    "hono": "^4.7.4"
+    "hono": "^4.7.4",
+    "langchain": "^0.3.20"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20250214.0",

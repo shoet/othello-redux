@@ -9,6 +9,7 @@ import * as cfn from "@aws-sdk/client-cloudformation";
 import { StartGameUsecase } from "./usecase/startGame";
 import { OperationPutCellUsecase } from "./usecase/operationPutCell";
 import { BoardHistoryRepository } from "./infrastracture/repository/boardHistoryRepository";
+import { LLMAdapter } from "./infrastracture/adapter/llmAdapter";
 
 (async (run: boolean) => {
   if (!run) return;
@@ -108,11 +109,29 @@ import { BoardHistoryRepository } from "./infrastracture/repository/boardHistory
     (o) => o.OutputKey == "BoardTableName"
   )?.OutputValue;
   const boardRepository = new BoardRepository(boardTableName || "");
+  const connectionTableName = stack.Outputs?.find(
+    (o) => o.OutputKey == "ConnectionTableName"
+  )?.OutputValue;
 
-  const usecase = new StartGameUsecase(boardRepository, roomRepository);
+  const connectionRepository = new ConnectionRepository(
+    connectionTableName || ""
+  );
+  const callbackURL = stack.Outputs?.find(
+    (o) => o.OutputKey == "WebSocketApiCallbackURL"
+  )?.OutputValue;
+
+  const webSocketAPIAdapter = new WebSocketAPIAdapter(callbackURL || "");
+
+  const usecase = new StartGameUsecase(
+    boardRepository,
+    roomRepository,
+    connectionRepository,
+    webSocketAPIAdapter
+  );
+  const clientID = "1234";
   const roomID = "1237";
   const boardSize = 8;
-  const room = await usecase.run(roomID, boardSize);
+  const room = await usecase.run(clientID, roomID, boardSize);
   console.log(room);
 })(false);
 
@@ -196,4 +215,17 @@ import { BoardHistoryRepository } from "./infrastracture/repository/boardHistory
   const boardID = "70180f82-8823-4aff-b64c-71878374d377";
   const clientID = "148ad834-ae64-4e19-910b-3087444112cc";
   await usecase.run(boardID, clientID, { x: 0, y: 3 }, "white");
+})(false);
+
+(async (run: boolean) => {
+  if (!run) return;
+  const apiKey = process.env.OPENAI_API_KEY || "";
+  const modelName = "gpt-4o";
+  const llmAdapter = new LLMAdapter(apiKey, modelName);
+
+  const res = await llmAdapter.chatMessage(
+    "test",
+    "すべて日本語で答えてください。"
+  );
+  console.log(res);
 })(true);
