@@ -103,7 +103,7 @@ export class RoomRepository extends BaseDynamoDBRepository {
     };
   }
 
-  async saveUserRoom(roomID: string, clientID: ClientID): Promise<void> {
+  async saveUser(roomID: string, clientID: ClientID): Promise<void> {
     const getItemCommand = new ddb.GetItemCommand({
       TableName: this.ddbTableName,
       Key: {
@@ -141,7 +141,7 @@ export class RoomRepository extends BaseDynamoDBRepository {
     try {
       await this.ddbClient.send(putCommand);
     } catch (e) {
-      console.error("failed to saveUserRoom", e);
+      console.error("failed to saveUser", e);
       throw e;
     }
   }

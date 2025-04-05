@@ -4,7 +4,7 @@ import { UsecaseError } from "./error";
 interface IRoomRepository {
   isExistRoom(roomID: string): Promise<boolean>;
   createRoom(roomID: string, roomName: string): Promise<void>;
-  saveUserRoom(roomID: string, clientID: ClientID): Promise<void>;
+  saveUser(roomID: string, clientID: ClientID): Promise<void>;
   getRoom(roomID: RoomID): Promise<Room | undefined>;
 }
 
@@ -44,7 +44,7 @@ export class JoinRoomUsecase {
     }
 
     // ルーム情報を保存
-    await this.roomRepository.saveUserRoom(roomID, clientID);
+    await this.roomRepository.saveUser(roomID, clientID);
 
     // ルーム情報を取得
     const room = await this.roomRepository.getRoom(roomID);
