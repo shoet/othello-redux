@@ -8,7 +8,7 @@ describe("LLM Adapter", () => {
       expect(true).toBe(true);
     });
   } else {
-    it("functionCalling", async () => {
+    it("functionCalling real", async () => {
       const llmAdapter = new LLMAdapter(apiKey, "gpt-4o-mini-2024-07-18");
 
       const postDatabase: string[] = [];
