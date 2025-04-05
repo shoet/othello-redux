@@ -228,4 +228,4 @@ import { LLMAdapter } from "./infrastracture/adapter/llmAdapter";
     "すべて日本語で答えてください。"
   );
   console.log(res);
-})(true);
+})(false);

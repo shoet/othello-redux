@@ -1,5 +1,4 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { ChatCompletionMessageToolCall } from "openai/resources/chat/completions";
 
 export class LLMAdapter {
   private readonly openAIAPIKey: string;
@@ -38,7 +37,7 @@ export class LLMAdapter {
     description: string,
     message: string,
     fn: (args: T) => Promise<R | void>,
-    functionArgs: FunctionArgs
+    functionArgs: FunctionCallingArgs
   ): Promise<R | void> {
     const response = await this.llmClient.completionWithRetry({
       messages: [{ role: "user", content: message }],
@@ -68,7 +67,7 @@ export class LLMAdapter {
   }
 }
 
-type FunctionArgs = {
+export type FunctionCallingArgs = {
   type: string;
   properties: {
     [key: string]: {
