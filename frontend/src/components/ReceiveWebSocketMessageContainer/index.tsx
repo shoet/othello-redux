@@ -19,6 +19,7 @@ type ReceiveMessagePayload =
         board_id: string;
         players: Player[];
         current_turn_index: 0;
+        vs_cpu: boolean;
       };
     }
   | {
@@ -75,6 +76,7 @@ export const ReceiveWebSocketMessageContainer = (
             boardID: data.board_id,
             players: data.players,
             currentTurnIndex: data.current_turn_index,
+            vsCPU: data.vs_cpu,
           })
         );
         break;

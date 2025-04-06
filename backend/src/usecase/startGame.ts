@@ -1,13 +1,7 @@
 import { Board } from "../domain/board";
 import { Players } from "../domain/players";
-import {
-  BoardID,
-  ClientID,
-  Connection,
-  Player,
-  Room,
-  RoomID,
-} from "../domain/types";
+import { Room } from "../domain/room";
+import { BoardID, ClientID, Connection, Player, RoomID } from "../domain/types";
 
 interface IBoardRepository {
   createBoard(boardSize: number): Promise<Board>;
@@ -22,7 +16,11 @@ interface IConnectionRepository {
 }
 interface IWebSocketAPIAdapter {
   sendMessage(connectionID: string, message: string): Promise<void>;
-  createStartGameMessagePayload(board: Board, players: Player[]): string;
+  createStartGameMessagePayload(
+    board: Board,
+    players: Player[],
+    vsCPU?: boolean
+  ): string;
 }
 
 // まだ入室が完了していないプレイヤーがいる場合はエラーを返す
@@ -97,7 +95,8 @@ export class StartGameUsecase {
       // ゲーム開始を通知する
       const payload = this.webSocketAPIAdapter.createStartGameMessagePayload(
         board,
-        room.players
+        room.players,
+        room.cpuID ? true : false // CPU対戦かどうか
       );
       await Promise.all(
         room.players.map(async (p) => {

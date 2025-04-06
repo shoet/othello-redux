@@ -175,13 +175,20 @@ export class RoomRepository extends BaseDynamoDBRepository {
       const roomName = item["room_name"]?.S;
       const players = item["players"]?.L;
       const boardID = item["board_id"]?.S;
+      const cpuClientID = item["cpu_client_id"]?.S;
       if (!roomID || !roomName || !players) {
         console.log("invalid room item", { item: item });
         return undefined;
       }
       const playersValue = this.parsePlayersFromListAV({ L: players });
 
-      const room = new Room(roomName, roomID, playersValue, boardID);
+      const room = new Room(
+        roomName,
+        roomID,
+        playersValue,
+        boardID,
+        cpuClientID
+      );
       return room;
     } catch (e) {
       console.error("failed to query table", e);

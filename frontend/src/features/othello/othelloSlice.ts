@@ -13,6 +13,7 @@ export type OthelloState = {
   players?: Player[];
   result?: Result;
   isTurnPutted: boolean;
+  vsCPU?: boolean;
 };
 
 export const DEFAULT_BOARD_SIZE = 8;
@@ -36,14 +37,17 @@ export const othelloSlice = createSlice({
         boardID: string;
         players: Player[];
         currentTurnIndex: number;
+        vsCPU?: boolean;
       }>
     ) => {
-      const { board, players, currentTurnIndex, boardID } = aciton.payload;
+      const { board, players, currentTurnIndex, boardID, vsCPU } =
+        aciton.payload;
       state.board = board;
       state.boardID = boardID;
       state.players = players;
       state.status = "playing";
       state.currentPlayerIndex = currentTurnIndex;
+      state.vsCPU = vsCPU;
     },
     updateBoardAction: (
       state,
