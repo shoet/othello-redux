@@ -3,14 +3,29 @@ import { CellColor, ClientID, Player } from "./types";
 export class Players {
   MAX_PLAYERS = 2;
 
-  players: Player[];
+  private _players: Player[];
+  private _cpuPlayerID: ClientID | undefined;
 
   constructor(players: Player[]) {
-    this.players = players;
+    this._players = players;
+  }
+
+  static fromPlayers(players: Player[], cpuPlayerID?: string): Players {
+    const p = new Players(players);
+    p._cpuPlayerID = cpuPlayerID;
+    return p;
+  }
+
+  get players(): Player[] {
+    return this._players;
+  }
+
+  get cpuPlayerID(): ClientID | undefined {
+    return this._cpuPlayerID;
   }
 
   getSelectableColor(): CellColor {
-    const whitePlayer = this.players.find(
+    const whitePlayer = this._players.find(
       (player) => player.cellColor === "white"
     );
     if (whitePlayer === undefined) {
@@ -19,24 +34,23 @@ export class Players {
     return "black";
   }
 
-  static fromPlayers(players: Player[]): Players {
-    return new Players(players);
-  }
-
   addAbleToAddPlayer(): boolean {
-    return this.players.length < this.MAX_PLAYERS;
+    return this._players.length < this.MAX_PLAYERS;
   }
 
-  addPlayer(player: Player): void {
-    this.players.push(player);
+  addPlayer(player: Player, isCPU: boolean = false): void {
+    this._players.push(player);
+    if (isCPU) {
+      this._cpuPlayerID = player.clientID;
+    }
   }
 
   isFull(): boolean {
-    return this.players.length === this.MAX_PLAYERS;
+    return this._players.length === this.MAX_PLAYERS;
   }
 
   // playersにclientIDを持つメンバーが含まれているかを返す
   isContainMember(clientID: ClientID) {
-    return this.players.find((m) => m.clientID === clientID) !== undefined;
+    return this._players.find((m) => m.clientID === clientID) !== undefined;
   }
 }

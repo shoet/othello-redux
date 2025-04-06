@@ -18,13 +18,6 @@ export type RoomDTO = {
   boardID?: BoardID;
 };
 
-export type Room = {
-  roomName: string;
-  roomID: RoomID;
-  players: Player[];
-  boardID?: BoardID;
-};
-
 export type BoardID = string;
 export type BoardDTO = {
   boardID: BoardID;
