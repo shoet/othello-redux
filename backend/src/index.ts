@@ -61,6 +61,7 @@ app.post("/join_room", async (c) => {
     .object({
       client_id: z.string().min(1),
       room_id: z.string().min(1),
+      vs_cpu: z.boolean().optional(),
     })
     .safeParse(body);
   if (!requestBody.success) {
@@ -80,7 +81,10 @@ app.post("/join_room", async (c) => {
   );
   const roomID = await usecase.run(
     requestBody.data.client_id,
-    requestBody.data.room_id
+    requestBody.data.room_id,
+    {
+      vsCPU: requestBody.data.vs_cpu,
+    }
   );
 
   return c.json({ room_id: roomID }, 200);
