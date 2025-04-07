@@ -12,6 +12,7 @@ export class Lambda extends Construct {
   readonly httpAPILambdaFunction: cdk.aws_lambda_nodejs.NodejsFunction;
   readonly connectionLambdaFunction: cdk.aws_lambda_nodejs.NodejsFunction;
   readonly customEventLambdaFunction: cdk.aws_lambda_nodejs.NodejsFunction;
+  readonly putOperationSQSLambdaFunction: cdk.aws_lambda_nodejs.NodejsFunction;
   constructor(scope: Construct, id: string, props: Props) {
     super(scope, id);
     const cdkRoot = process.cwd();
@@ -23,7 +24,7 @@ export class Lambda extends Construct {
         entry: `${cdkRoot}/../src/lambdaHttpHandler.ts`,
         handler: "handler",
         runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
-        timeout: cdk.Duration.seconds(30),
+        timeout: cdk.Duration.minutes(1),
         bundling: {
           forceDockerBundling: false,
         },
@@ -77,5 +78,26 @@ export class Lambda extends Construct {
         environment: webSocketLambdaEnvironment,
       }
     );
+
+    this.putOperationSQSLambdaFunction =
+      new cdk.aws_lambda_nodejs.NodejsFunction(
+        scope,
+        "PutOperationSQSLambdaFunction",
+        {
+          entry: `${cdkRoot}/../src/lambdaSQSHandler.ts`,
+          handler: "putOperationQueueHandler",
+          runtime: cdk.aws_lambda.Runtime.NODEJS_20_X,
+          timeout: cdk.Duration.minutes(5),
+          bundling: {
+            forceDockerBundling: false,
+          },
+          environment: {
+            CONNECTION_TABLE_NAME: props.connection_table_name,
+            ROOM_TABLE_NAME: props.room_table_name,
+            BOARD_TABLE_NAME: props.board_table_name,
+            BOARD_HISTORY_TABLE_NAME: props.board_history_table_name,
+          },
+        }
+      );
   }
 }

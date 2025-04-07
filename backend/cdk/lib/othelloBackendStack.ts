@@ -1,6 +1,6 @@
 import * as cdk from "aws-cdk-lib";
 import { Construct } from "constructs";
-import { APIGateway, DynamoDB, Lambda } from "./constructs";
+import { APIGateway, DynamoDB, Lambda, SQS } from "./constructs";
 
 export class OthelloBackendStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: cdk.StackProps) {
@@ -29,12 +29,20 @@ export class OthelloBackendStack extends cdk.Stack {
       lambda.connectionLambdaFunction,
       lambda.customEventLambdaFunction,
       lambda.httpAPILambdaFunction,
+      lambda.putOperationSQSLambdaFunction,
     ]);
     apiGateway.grantGrantInvokeManageConnection([
       lambda.connectionLambdaFunction,
       lambda.customEventLambdaFunction,
       lambda.httpAPILambdaFunction,
+      lambda.putOperationSQSLambdaFunction,
     ]);
+
+    const sqs = new SQS(this, "SQS", {
+      stage: props.stage,
+      putOperationLambda: lambda.putOperationSQSLambdaFunction,
+      visibilityTimeout: lambda.putOperationSQSLambdaFunction.timeout,
+    });
 
     const cfnOutput = (key: string, value: string) => {
       new cdk.CfnOutput(this, key, {
@@ -63,5 +71,6 @@ export class OthelloBackendStack extends cdk.Stack {
     cfnOutput("RoomTableName", dynamodb.roomTable.tableName);
     cfnOutput("BoardTableName", dynamodb.boardTable.tableName);
     cfnOutput("BoardHistoryTableName", dynamodb.boardHistoryTable.tableName);
+    cfnOutput("PutOperationQueueURL", sqs.putOperationFIFOQueue.queueUrl);
   }
 }
