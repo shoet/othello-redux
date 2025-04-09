@@ -29,16 +29,32 @@
   font-size: 16px;
 }
 
-.submitButton {
-  background-color: #4caf50;
-  color: white;
-  padding: 14px 20px;
-  border: none;
-  cursor: pointer;
-  width: 60%;
+.buttonArea {
   margin-top: 30px;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  gap: 20px;
+  width: 100%;
 
-  font-size: 16px;
-  font-weight: bold;
-  border-radius: 100px;
+  .button {
+    padding: 14px 20px;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 100px;
+  }
+
+  .vsCPUButton {
+    background-color: #ffa500;
+    color: white;
+  }
+
+  .joinRoomButton {
+    background-color: #4caf50;
+    color: white;
+  }
 }
