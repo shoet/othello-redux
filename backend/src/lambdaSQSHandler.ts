@@ -65,7 +65,7 @@ export const putOperationQueueHandler: Handler = async (
     cell_color: z.enum(["white", "black"]),
   });
   const batchItemFailures: SQSBatchItemFailure[] = [];
-  records.forEach(async (r) => {
+  for (let r of records) {
     const b = JSON.parse(r.body);
     const { success, data, error } = requestBody.safeParse(b);
     if (!success || data === undefined) {
@@ -74,7 +74,7 @@ export const putOperationQueueHandler: Handler = async (
         error: error.format(),
       });
       batchItemFailures.push({ itemIdentifier: r.messageId });
-      return;
+      continue;
     }
     const { client_id, board_id, position, cell_color } = data;
     try {
@@ -83,6 +83,6 @@ export const putOperationQueueHandler: Handler = async (
       console.error("failed to usecase", { messageId: r.messageId, error: e });
       batchItemFailures.push({ itemIdentifier: r.messageId });
     }
-  });
+  }
   return { batchItemFailures: batchItemFailures };
 };
