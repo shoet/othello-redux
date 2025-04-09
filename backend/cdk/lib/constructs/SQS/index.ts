@@ -45,6 +45,7 @@ export class SQS extends Construct {
             : cdk.RemovalPolicy.DESTROY,
         retentionPeriod: cdk.Duration.minutes(5),
         visibilityTimeout: props.visibilityTimeout,
+        contentBasedDeduplication: true,
       }
     );
 
@@ -74,6 +75,12 @@ export class SQS extends Construct {
           .GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
       alarmDescription:
         "Alarm when there are messages in the dead letter queue",
+    });
+  }
+
+  grantSendMessage(...grantable: cdk.aws_iam.IGrantable[]) {
+    grantable.forEach((g) => {
+      this.putOperationFIFOQueue.grantSendMessages(g);
     });
   }
 }

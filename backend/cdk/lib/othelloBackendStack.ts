@@ -21,6 +21,7 @@ export class OthelloBackendStack extends cdk.Stack {
     dynamodb.grantReadWriteData(lambda.connectionLambdaFunction);
     dynamodb.grantReadWriteData(lambda.customEventLambdaFunction);
     dynamodb.grantReadWriteData(lambda.httpAPILambdaFunction);
+    dynamodb.grantReadWriteData(lambda.putOperationSQSLambdaFunction);
 
     const apiGateway = new APIGateway(this, "APIGateway", {
       stage: props.stage,
@@ -40,6 +41,9 @@ export class OthelloBackendStack extends cdk.Stack {
       putOperationLambda: lambda.putOperationSQSLambdaFunction,
       visibilityTimeout: lambda.putOperationSQSLambdaFunction.timeout,
     });
+    sqs.grantSendMessage(lambda.httpAPILambdaFunction);
+    sqs.grantSendMessage(lambda.putOperationSQSLambdaFunction);
+
     const lambdaEnvironment = {
       CONNECTION_TABLE_NAME: dynamodb.connectionTable.tableName,
       ROOM_TABLE_NAME: dynamodb.roomTable.tableName,
@@ -93,6 +97,10 @@ export class OthelloBackendStack extends cdk.Stack {
     cfnOutput(
       "WebSocketCustomEventLambdaLogGroup",
       lambda.customEventLambdaFunction.logGroup.logGroupName
+    );
+    cfnOutput(
+      "PutOperationSQSLambdaLogGroup",
+      lambda.putOperationSQSLambdaFunction.logGroup.logGroupName
     );
     cfnOutput("ConnectionTableName", dynamodb.connectionTable.tableName);
     cfnOutput("RoomTableName", dynamodb.roomTable.tableName);
