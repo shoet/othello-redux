@@ -97,7 +97,6 @@ app.post("/join_room_cpu", async (c) => {
   const requestBody = z
     .object({
       client_id: z.string().min(1),
-      vs_cpu: z.boolean().optional(),
     })
     .safeParse(body);
   if (!requestBody.success) {
@@ -117,7 +116,7 @@ app.post("/join_room_cpu", async (c) => {
   );
   const generateRoomID = crypto.randomUUID();
   const roomID = await usecase.run(requestBody.data.client_id, generateRoomID, {
-    vsCPU: requestBody.data.vs_cpu,
+    vsCPU: true,
   });
 
   return c.json({ room_id: roomID }, 200);
