@@ -20,3 +20,18 @@ export const joinRoom = async (clientID: string, roomID: string) => {
 
   return { roomID: result.room_id };
 };
+
+export const joinRoomCPU = async (clientID: string) => {
+  const url = getAPIRoute("/join_room_cpu");
+
+  const result: JoinRoomResponse = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      client_id: clientID,
+    }),
+  }).then(handleResult);
+  return { roomID: result.room_id };
+};

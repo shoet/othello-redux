@@ -5,6 +5,7 @@ import styles from "./index.module.scss";
 import { useNavigate } from "react-router-dom";
 import { useEntryForm } from "./hooks";
 import clsx from "clsx";
+import { joinRoomCPU } from "../../../../services/joinRoom";
 
 export const EntryForm = (props: React.ComponentProps<"div">) => {
   const { ...rest } = props;
@@ -21,7 +22,7 @@ export const EntryForm = (props: React.ComponentProps<"div">) => {
   };
 
   const handleVsCPU = async (clientID: string) => {
-    // TODO: CPU対戦の実装
+    await joinRoomCPU(clientID);
   };
 
   useEffect(() => {
