@@ -110,16 +110,8 @@ export class OthelloFrontendStack extends cdk.Stack {
       ),
     });
 
-    new cdk.CfnOutput(this, "SourceBucketName", {
-      value: sourceBucket.bucketName,
-    });
-
     new cdk.CfnOutput(this, "CloudFrontDistributionDomainName", {
       value: cloudFrontDistribution.distributionDomainName,
-    });
-
-    new cdk.CfnOutput(this, "FrontendURL", {
-      value: `https://${frontendDomain}`,
     });
   }
 }
