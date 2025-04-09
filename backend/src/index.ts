@@ -92,6 +92,37 @@ app.post("/join_room", async (c) => {
   return c.json({ room_id: roomID }, 200);
 });
 
+app.post("/join_room_cpu", async (c) => {
+  const body = await c.req.json();
+  const requestBody = z
+    .object({
+      client_id: z.string().min(1),
+      vs_cpu: z.boolean().optional(),
+    })
+    .safeParse(body);
+  if (!requestBody.success) {
+    console.error(requestBody.error.errors);
+    return c.json({ error: "bad request" }, 400);
+  }
+
+  const websocketAdapter = new WebSocketAPIAdapter(env.CALLBACK_URL);
+  const connecitonRepository = new ConnectionRepository(
+    env.CONNECTION_TABLE_NAME
+  );
+  const roomRepository = new RoomRepository(env.ROOM_TABLE_NAME);
+  const usecase = new JoinRoomUsecase(
+    websocketAdapter,
+    connecitonRepository,
+    roomRepository
+  );
+  const generateRoomID = crypto.randomUUID();
+  const roomID = await usecase.run(requestBody.data.client_id, generateRoomID, {
+    vsCPU: requestBody.data.vs_cpu,
+  });
+
+  return c.json({ room_id: roomID }, 200);
+});
+
 app.post("/start_game", async (c) => {
   const body = await c.req.json();
   const requestBody = z
