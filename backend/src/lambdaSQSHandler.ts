@@ -10,7 +10,9 @@ import { BoardHistoryRepository } from "./infrastracture/repository/boardHistory
 import { RoomRepository } from "./infrastracture/repository/roomRepository";
 import { WebSocketAPIAdapter } from "./infrastracture/adapter/webSocketAPIAdapter";
 import { ConnectionRepository } from "./infrastracture/repository/connectionRepository";
-import { OperationPutCellUsecase } from "./usecase/operationPutCell";
+import { OperationPutCellByCPUUsecase } from "./usecase/operationPutCellByCPU";
+import { LLMAdapter } from "./infrastracture/adapter/llmAdapter";
+import { SQSAdapter } from "./infrastracture/adapter/sqsAdapter";
 
 var environment = z.object({
   CONNECTION_TABLE_NAME: z.string().min(1),
@@ -18,6 +20,9 @@ var environment = z.object({
   BOARD_TABLE_NAME: z.string().min(1),
   BOARD_HISTORY_TABLE_NAME: z.string().min(1),
   CALLBACK_URL: z.string().min(1),
+  OPENAI_API_KEY: z.string().min(1),
+  OPENAI_MODEL_NAME: z.string().min(1),
+  PUT_BY_CPU_QUEUE_URL: z.string().min(1),
 });
 
 type Environment = z.infer<typeof environment>;
@@ -35,7 +40,7 @@ const env = loadEnvironment();
 
 /**
  * FIFOキューを処理するLambdaハンドラー
- * 石の配置処理を行う
+ * CPUが石の配置を行う
  */
 export const putOperationQueueHandler: Handler = async (
   event: SQSEvent
@@ -50,19 +55,22 @@ export const putOperationQueueHandler: Handler = async (
     env.CONNECTION_TABLE_NAME
   );
 
-  const usecase = new OperationPutCellUsecase(
+  const llmAdapter = new LLMAdapter(env.OPENAI_API_KEY, env.OPENAI_MODEL_NAME);
+  const sqsAdapter = new SQSAdapter();
+
+  const usecase = new OperationPutCellByCPUUsecase(
     boardRepository,
     boardHistoryRepository,
     roomRepository,
     connecitonRepository,
-    websocketAdapter
+    websocketAdapter,
+    llmAdapter,
+    sqsAdapter,
+    env.PUT_BY_CPU_QUEUE_URL
   );
   const records = event.Records;
   const requestBody = z.object({
     board_id: z.string().min(1),
-    client_id: z.string().min(1),
-    position: z.object({ x: z.number(), y: z.number() }),
-    cell_color: z.enum(["white", "black"]),
   });
   const batchItemFailures: SQSBatchItemFailure[] = [];
   for (let r of records) {
@@ -76,9 +84,9 @@ export const putOperationQueueHandler: Handler = async (
       batchItemFailures.push({ itemIdentifier: r.messageId });
       continue;
     }
-    const { client_id, board_id, position, cell_color } = data;
+    const { board_id } = data;
     try {
-      await usecase.run(board_id, client_id, position, cell_color);
+      await usecase.run(board_id);
     } catch (e) {
       console.error("failed to usecase", { messageId: r.messageId, error: e });
       batchItemFailures.push({ itemIdentifier: r.messageId });
