@@ -11,6 +11,7 @@ import { ClientIDIsNotMember, StartGameUsecase } from "./usecase/startGame";
 import { OperationPutCellUsecase } from "./usecase/operationPutCell";
 import { BoardHistoryRepository } from "./infrastracture/repository/boardHistoryRepository";
 import { GetPutableUsecase } from "./usecase/getPutable";
+import { SQSAdapter } from "./infrastracture/adapter/sqsAdapter";
 
 var environment = z.object({
   CONNECTION_TABLE_NAME: z.string().min(1),
@@ -18,6 +19,7 @@ var environment = z.object({
   BOARD_TABLE_NAME: z.string().min(1),
   BOARD_HISTORY_TABLE_NAME: z.string().min(1),
   CALLBACK_URL: z.string().min(1),
+  PUT_BY_CPU_QUEUE_URL: z.string().min(1),
 });
 
 type Environment = z.infer<typeof environment>;
@@ -172,6 +174,9 @@ app.post("/put_cell", async (c) => {
     })
     .safeParse(body);
   if (!requestBody.success) {
+    console.error("failed to parse requestBody", {
+      error: requestBody.error.format(),
+    });
     return c.json({ error: "bad request" }, 400);
   }
   const boardRepository = new BoardRepository(env.BOARD_TABLE_NAME);
@@ -183,13 +188,16 @@ app.post("/put_cell", async (c) => {
   const connecitonRepository = new ConnectionRepository(
     env.CONNECTION_TABLE_NAME
   );
+  const sqsAdapter = new SQSAdapter();
 
   const usecase = new OperationPutCellUsecase(
     boardRepository,
     boardHistoryRepository,
     roomRepository,
     connecitonRepository,
-    websocketAdapter
+    websocketAdapter,
+    sqsAdapter,
+    env.PUT_BY_CPU_QUEUE_URL
   );
 
   const request = requestBody.data;
