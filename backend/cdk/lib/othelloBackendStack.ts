@@ -106,7 +106,6 @@ export class OthelloBackendStack extends cdk.Stack {
     cfnOutput("RoomTableName", dynamodb.roomTable.tableName);
     cfnOutput("BoardTableName", dynamodb.boardTable.tableName);
     cfnOutput("BoardHistoryTableName", dynamodb.boardHistoryTable.tableName);
-    cfnOutput("PutOperationQueueURL", sqs.putOperationFIFOQueue.queueUrl);
   }
 
   addLambdaEnvironment(
