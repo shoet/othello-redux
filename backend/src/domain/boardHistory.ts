@@ -26,12 +26,12 @@ export class BoardHistory {
 
   static fromAny(args: any) {
     if (
-      !args.boardID ||
-      !args.timestamp ||
-      !args.clientID ||
-      !args.positionX ||
-      !args.positionY ||
-      !args.color
+      args.boardID === undefined ||
+      args.timestamp === undefined ||
+      args.clientID === undefined ||
+      args.positionX === undefined ||
+      args.positionY === undefined ||
+      args.color === undefined
     ) {
       console.error("Invalid arguments", args);
       throw new Error("Invalid arguments");
