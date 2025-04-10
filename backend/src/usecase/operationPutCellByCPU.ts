@@ -118,6 +118,8 @@ export class OperationPutCellByCPUUsecase {
       boardHistory
     );
 
+    console.log("### prompot", prompt);
+
     // オセロの手番
     await this.llmAdapter.functionCalling(
       "putOperation",
@@ -172,6 +174,7 @@ export class OperationPutCellByCPUUsecase {
     if (!this.board || !this.cpuPlayer) {
       throw new Error("board, cpuPlayer is not found");
     }
+    console.log("### putOperatino", { board: this.board });
     // 石の配置
     this.board.putCell(
       { x: args.positionX, y: args.positionY },
