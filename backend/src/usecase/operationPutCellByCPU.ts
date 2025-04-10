@@ -111,59 +111,30 @@ export class OperationPutCellByCPUUsecase {
       throw new Error("CPU Player not found");
     }
 
-    const prompt = this.getCPUPutPrompt(
-      this.cpuPlayer.cellColor,
-      this.board.boardSize,
+    const cpuPosition = await this.getCPUPosition(
       this.board,
+      this.cpuPlayer,
       boardHistory
     );
 
-    const putOperation = async (args: {
-      positionX: number;
-      positionY: number;
-    }): Promise<void> => {
-      if (!this.board || !this.cpuPlayer) {
-        throw new Error("board, cpuPlayer is not found");
-      }
-      console.log("### putOperatino", {
-        board: this.board,
-        positionX: args.positionX,
-        positionY: args.positionY,
-      });
-      // 石の配置
-      this.board.putCell(
-        { x: args.positionX, y: args.positionY },
-        this.cpuPlayer.cellColor
-      );
-      // ターンの切り替え
-      this.board.turnNext();
-      // ボードの更新
-      await this.boardRepository.updateBoard(this.board);
-      // 履歴の保存
-      await this.boardHistoryRepository.createHistory(
-        this.board.boardID,
-        Date.now(),
-        this.cpuPlayer.clientID,
-        args.positionX,
-        args.positionY,
-        this.cpuPlayer.cellColor
-      );
-    };
+    if (!cpuPosition) {
+      throw new Error("cpu position not found");
+    }
 
-    // オセロの手番
-    await this.llmAdapter.functionCalling(
-      "putOperation",
-      "オセロの次の手の座標を`positionX`と`positionY`として出力する関数",
-      prompt,
-      putOperation,
-      {
-        type: "object",
-        properties: {
-          positionX: { type: "number", description: "オセロのX座標" },
-          positionY: { type: "number", description: "オセロのY座標" },
-        },
-        required: ["positionX", "positionY"],
-      }
+    // 石の配置
+    this.board.putCell(cpuPosition, this.cpuPlayer.cellColor);
+    // ターンの切り替え
+    this.board.turnNext();
+    // ボードの更新
+    await this.boardRepository.updateBoard(this.board);
+    // 履歴の保存
+    await this.boardHistoryRepository.createHistory(
+      this.board.boardID,
+      Date.now(),
+      this.cpuPlayer.clientID,
+      cpuPosition.x,
+      cpuPosition.y,
+      this.cpuPlayer.cellColor
     );
 
     // 次ターンのプレイヤーが石を置けない場合はスキップ
@@ -194,6 +165,61 @@ export class OperationPutCellByCPUUsecase {
 
     // ルームにボード情報と勝ち負け判定を通知
     await this.sendTurnResponse(this.board, room, false);
+  }
+
+  async getCPUPosition(
+    board: Board,
+    cpuPlayer: Player,
+    boardHistory: BoardHistory[],
+    retry: number = 3
+  ) {
+    let cpuPosition: Position | undefined;
+    while (true) {
+      const prompt = this.getCPUPutPrompt(
+        cpuPlayer.cellColor,
+        board.boardSize,
+        board,
+        boardHistory
+      );
+
+      const putOperation = async (args: {
+        positionX: number;
+        positionY: number;
+      }): Promise<void> => {
+        cpuPosition = { x: args.positionX, y: args.positionY };
+      };
+
+      // オセロの手番
+      await this.llmAdapter.functionCalling(
+        "putOperation",
+        "オセロの次の手の座標を`positionX`と`positionY`として出力する関数",
+        prompt,
+        putOperation,
+        {
+          type: "object",
+          properties: {
+            positionX: { type: "number", description: "オセロのX座標" },
+            positionY: { type: "number", description: "オセロのY座標" },
+          },
+          required: ["positionX", "positionY"],
+        }
+      );
+
+      // 配置可能なポジションが得られたら終了
+      if (
+        cpuPosition &&
+        board.isPutableCell(cpuPosition, cpuPlayer.cellColor)
+      ) {
+        break;
+      }
+
+      if (retry <= 0) {
+        break;
+      }
+      console.log("retry cpu position", cpuPosition);
+      retry--;
+    }
+    return cpuPosition;
   }
 
   async sendTurnResponse(
