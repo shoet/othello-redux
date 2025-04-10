@@ -113,18 +113,32 @@ export class RoomRepository extends BaseDynamoDBRepository {
     } else {
       throw new AlreadyCapacityRoomException();
     }
-
     const now = new Date().toTimestampInSeconds();
+
+    let updateExpression = "SET players = :players, updated_at = :updated_at";
+    let expressionAttributeValues: { [key: string]: ddb.AttributeValue } = {
+      ":players": this.playersToAV(players.players),
+      ":updated_at": { N: now.toString() },
+    };
+
+    if (options?.isCPU) {
+      // CPU対戦の場合、cpu_player_idを保存する
+      updateExpression =
+        "SET players = :players, updated_at = :updated_at, cpu_player_id = :cpu_player_id";
+      expressionAttributeValues = {
+        ":players": this.playersToAV(players.players),
+        ":updated_at": { N: now.toString() },
+        ":cpu_player_id": { S: clientID },
+      };
+    }
+
     const putCommand = new ddb.UpdateItemCommand({
       TableName: this.ddbTableName,
       Key: {
         room_id: { S: roomID },
       },
-      UpdateExpression: "SET players = :players, updated_at = :updated_at",
-      ExpressionAttributeValues: {
-        ":players": this.playersToAV(players.players),
-        ":updated_at": { N: now.toString() },
-      },
+      UpdateExpression: updateExpression,
+      ExpressionAttributeValues: expressionAttributeValues,
     });
     try {
       await this.ddbClient.send(putCommand);
