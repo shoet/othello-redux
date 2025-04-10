@@ -52,6 +52,7 @@ export class LLMAdapter {
           },
         },
       ],
+      tool_choice: { type: "function", function: { name: funcName } },
     });
     const msg = response.choices[0].message;
     const functionCall = msg.tool_calls;

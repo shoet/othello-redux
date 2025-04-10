@@ -118,8 +118,6 @@ export class OperationPutCellByCPUUsecase {
       boardHistory
     );
 
-    console.log("### prompot", prompt);
-
     const putOperation = async (args: {
       positionX: number;
       positionY: number;
@@ -127,7 +125,11 @@ export class OperationPutCellByCPUUsecase {
       if (!this.board || !this.cpuPlayer) {
         throw new Error("board, cpuPlayer is not found");
       }
-      console.log("### putOperatino", { board: this.board });
+      console.log("### putOperatino", {
+        board: this.board,
+        positionX: args.positionX,
+        positionY: args.positionY,
+      });
       // 石の配置
       this.board.putCell(
         { x: args.positionX, y: args.positionY },
