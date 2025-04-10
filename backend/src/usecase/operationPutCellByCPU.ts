@@ -215,7 +215,7 @@ export class OperationPutCellByCPUUsecase {
       }
 
       if (retry <= 0) {
-        break;
+        return undefined;
       }
       console.log("retry cpu position", cpuPosition);
       retry--;
