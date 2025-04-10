@@ -45,7 +45,7 @@ export class SQS extends Construct {
             : cdk.RemovalPolicy.DESTROY,
         retentionPeriod: cdk.Duration.minutes(5),
         visibilityTimeout: props.visibilityTimeout,
-        contentBasedDeduplication: true,
+        contentBasedDeduplication: false,
       }
     );
 
