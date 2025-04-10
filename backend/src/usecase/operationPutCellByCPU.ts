@@ -55,7 +55,8 @@ interface SQSAdapter {
   sendMessageFIFO(
     queueURL: string,
     messageGroupID: string,
-    body: string
+    body: string,
+    messageDeduplicationID: string
   ): Promise<void>;
 }
 
@@ -150,15 +151,15 @@ export class OperationPutCellByCPUUsecase {
         await this.sendTurnResponse(this.board, room, true);
         return;
       }
-      // CPU側で有人プレイヤー側がスキップされた場合、再度キューする
+      // CPU側のターンで有人プレイヤーがスキップされた場合、
+      // もう1ターンCPUに打たせるため再度キューに入れる
       await this.sendTurnResponse(this.board, room, false);
-      const messageGroupID = this.board.boardID;
-      const body = JSON.stringify({ board_id: this.board.boardID });
       // TODO: 無限ループ回避
       await this.sqsAdapter.sendMessageFIFO(
         this.putByCPUQueueURL,
-        messageGroupID,
-        body
+        this.board.boardID,
+        JSON.stringify({ board_id: this.board.boardID }),
+        `${this.board.boardID}-${this.board.turn}` // messageDeduplicationID
       );
       return;
     }

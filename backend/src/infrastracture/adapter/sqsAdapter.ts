@@ -6,13 +6,15 @@ export class SQSAdapter {
   async sendMessageFIFO(
     queueURL: string,
     messageGroupID: string,
-    body: string
+    body: string,
+    messageDeduplicationID: string
   ): Promise<void> {
     const sqsClient = new SQSClient();
     const sendMessageCommand = new SendMessageCommand({
       QueueUrl: queueURL,
       MessageGroupId: messageGroupID,
       MessageBody: body,
+      MessageDeduplicationId: messageDeduplicationID,
     });
     try {
       await sqsClient.send(sendMessageCommand);

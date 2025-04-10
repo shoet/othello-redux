@@ -41,7 +41,8 @@ interface SQSAdapter {
   sendMessageFIFO(
     queueURL: string,
     messageGroupID: string,
-    body: string
+    body: string,
+    messageDeduplicationID: string
   ): Promise<void>;
 }
 
@@ -132,8 +133,9 @@ export class OperationPutCellUsecase {
       console.log("### message", messageGroupID, message);
       await this.sqsAdapter.sendMessageFIFO(
         this.putByCPUQueueURL,
-        messageGroupID,
-        message
+        board.boardID,
+        JSON.stringify({ board_id: board.boardID }),
+        `${board.boardID}-${board.turn}` // messageDeduplicationID
       );
     }
 
