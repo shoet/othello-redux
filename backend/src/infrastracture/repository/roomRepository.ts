@@ -189,7 +189,7 @@ export class RoomRepository extends BaseDynamoDBRepository {
       const roomName = item["room_name"]?.S;
       const players = item["players"]?.L;
       const boardID = item["board_id"]?.S;
-      const cpuClientID = item["cpu_client_id"]?.S;
+      const cpuPlayerID = item["cpu_player_id"]?.S;
       if (!roomID || !roomName || !players) {
         console.log("invalid room item", { item: item });
         return undefined;
@@ -201,7 +201,7 @@ export class RoomRepository extends BaseDynamoDBRepository {
         roomID,
         playersValue,
         boardID,
-        cpuClientID
+        cpuPlayerID
       );
       return room;
     } catch (e) {
@@ -228,13 +228,20 @@ export class RoomRepository extends BaseDynamoDBRepository {
       const roomName = item["room_name"]?.S;
       const players = item["players"]?.L;
       const boardID = item["board_id"]?.S;
+      const cpuPlayerID = item["cpu_player_id"]?.S;
       if (!roomID || !roomName || !players) {
         console.log("invalid room item", { item: item });
         return undefined;
       }
       const playersValue = this.parsePlayersFromListAV({ L: players });
 
-      const room = new Room(roomName, roomID, playersValue, boardID);
+      const room = new Room(
+        roomName,
+        roomID,
+        playersValue,
+        boardID,
+        cpuPlayerID
+      );
       return room;
     } catch (e) {
       console.error("failed to query table", e);
@@ -248,7 +255,7 @@ export class RoomRepository extends BaseDynamoDBRepository {
       Key: {
         room_id: { S: roomID },
       },
-      ProjectionExpression: "players, cpu_client_id",
+      ProjectionExpression: "players, cpu_player_id",
     });
     let result: ddb.GetItemCommandOutput;
     try {
@@ -260,8 +267,8 @@ export class RoomRepository extends BaseDynamoDBRepository {
     if (!result.Item) throw new Error("room not found");
     const playersAV = result.Item["players"];
     const playerList = this.parsePlayersFromListAV(playersAV);
-    const cpuClientID = result.Item["cpu_client_id"]?.S;
-    const players = Players.fromPlayers(playerList, cpuClientID);
+    const cpuPlayerID = result.Item["cpu_player_id"]?.S;
+    const players = Players.fromPlayers(playerList, cpuPlayerID);
     return players;
   }
 }

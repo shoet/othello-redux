@@ -52,8 +52,8 @@ export class JoinRoomUsecase {
     await this.roomRepository.saveUser(roomID, clientID);
     if (options?.vsCPU) {
       // CPU対戦の場合、CPUプレイヤーを登録する
-      const cpuClientID = crypto.randomUUID();
-      await this.roomRepository.saveUser(roomID, cpuClientID, { isCPU: true });
+      const cpuPlayerID = crypto.randomUUID();
+      await this.roomRepository.saveUser(roomID, cpuPlayerID, { isCPU: true });
     }
 
     // ルーム情報を取得
