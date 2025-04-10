@@ -172,7 +172,7 @@ export class OperationPutCellByCPUUsecase {
     board: Board,
     cpuPlayer: Player,
     boardHistory: BoardHistory[],
-    retry: number = 3
+    retry: number = 5
   ) {
     let cpuPosition: Position | undefined;
     while (true) {
