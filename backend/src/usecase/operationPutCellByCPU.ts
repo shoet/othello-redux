@@ -120,12 +120,40 @@ export class OperationPutCellByCPUUsecase {
 
     console.log("### prompot", prompt);
 
+    const putOperation = async (args: {
+      positionX: number;
+      positionY: number;
+    }): Promise<void> => {
+      if (!this.board || !this.cpuPlayer) {
+        throw new Error("board, cpuPlayer is not found");
+      }
+      console.log("### putOperatino", { board: this.board });
+      // 石の配置
+      this.board.putCell(
+        { x: args.positionX, y: args.positionY },
+        this.cpuPlayer.cellColor
+      );
+      // ターンの切り替え
+      this.board.turnNext();
+      // ボードの更新
+      await this.boardRepository.updateBoard(this.board);
+      // 履歴の保存
+      await this.boardHistoryRepository.createHistory(
+        this.board.boardID,
+        Date.now(),
+        this.cpuPlayer.clientID,
+        args.positionX,
+        args.positionY,
+        this.cpuPlayer.cellColor
+      );
+    };
+
     // オセロの手番
     await this.llmAdapter.functionCalling(
       "putOperation",
       "オセロの次の手の座標を`positionX`と`positionY`として出力する関数",
       prompt,
-      this.putOperation,
+      putOperation,
       {
         type: "object",
         properties: {
@@ -164,35 +192,6 @@ export class OperationPutCellByCPUUsecase {
 
     // ルームにボード情報と勝ち負け判定を通知
     await this.sendTurnResponse(this.board, room, false);
-  }
-
-  // LLMに実行させる関数
-  async putOperation(args: {
-    positionX: number;
-    positionY: number;
-  }): Promise<void> {
-    if (!this.board || !this.cpuPlayer) {
-      throw new Error("board, cpuPlayer is not found");
-    }
-    console.log("### putOperatino", { board: this.board });
-    // 石の配置
-    this.board.putCell(
-      { x: args.positionX, y: args.positionY },
-      this.cpuPlayer.cellColor
-    );
-    // ターンの切り替え
-    this.board.turnNext();
-    // ボードの更新
-    await this.boardRepository.updateBoard(this.board);
-    // 履歴の保存
-    await this.boardHistoryRepository.createHistory(
-      this.board.boardID,
-      Date.now(),
-      this.cpuPlayer.clientID,
-      args.positionX,
-      args.positionY,
-      this.cpuPlayer.cellColor
-    );
   }
 
   async sendTurnResponse(
