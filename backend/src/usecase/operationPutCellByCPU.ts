@@ -175,12 +175,18 @@ export class OperationPutCellByCPUUsecase {
     retry: number = 5
   ) {
     let cpuPosition: Position | undefined;
+    let retryHistory: {
+      positionX: number;
+      positionY: number;
+      color: CellColor;
+    }[] = [];
     while (true) {
       const prompt = this.getCPUPutPrompt(
         cpuPlayer.cellColor,
         board.boardSize,
         board,
-        boardHistory
+        boardHistory,
+        retryHistory
       );
 
       const putOperation = async (args: {
@@ -218,8 +224,16 @@ export class OperationPutCellByCPUUsecase {
         return undefined;
       }
       console.log("retry cpu position", cpuPosition);
+      if (cpuPosition) {
+        retryHistory.push({
+          positionX: cpuPosition.x,
+          positionY: cpuPosition.y,
+          color: cpuPlayer.cellColor,
+        });
+      }
       retry--;
     }
+    console.log("decision cpu position", cpuPosition);
     return cpuPosition;
   }
 
@@ -245,37 +259,71 @@ export class OperationPutCellByCPUUsecase {
     );
   }
 
-  getBoardJSON(board: Board): any {
-    return board.cells.map((row) => {
-      return row.map((cell) => {
-        return {
-          position: { x: cell.position.x, y: cell.position.y },
-          color: cell.cellColor,
-        };
-      });
-    });
+  getBoardPrompt(board: Board): string {
+    const prompt = board.cells
+      .map((row) => {
+        return (
+          "\t" +
+          JSON.stringify(
+            row.map((cell) => {
+              return {
+                position: { x: cell.position.x, y: cell.position.y },
+                color: cell.cellColor,
+              };
+            })
+          )
+        );
+      })
+      .join(",\n");
+    return `[\n${prompt}\n]`;
   }
 
-  getBoardHistoryJSON(histories: BoardHistory[]): any {
-    return histories.map((history) => {
-      return {
-        position: { x: history.positionX, y: history.positionY },
-        color: history.color,
-      };
-    });
+  getHistoryPrompt(histories: BoardHistory[]): string {
+    const prompt = histories
+      .map((history) => {
+        return (
+          "\t" +
+          JSON.stringify({
+            position: { x: history.positionX, y: history.positionY },
+            color: history.color,
+          })
+        );
+      })
+      .join(",\n");
+    return `[\n${prompt}\n]`;
   }
+
+  getRetryHistoryPrompt(
+    retryHistory: {
+      positionX: number;
+      positionY: number;
+      color: CellColor;
+    }[]
+  ): string {
+    const prompt = retryHistory
+      .map((history) => {
+        return (
+          "\t" +
+          JSON.stringify({
+            position: { x: history.positionX, y: history.positionY },
+            color: history.color,
+          })
+        );
+      })
+      .join(",\n");
+    return `[\n${prompt}\n]`;
+  }
+
   getCPUPutPrompt(
     color: CellColor,
     boardSize: number,
     board: Board,
-    history: BoardHistory[]
+    history: BoardHistory[],
+    retryHistory: { positionX: number; positionY: number; color: CellColor }[]
   ) {
-    const boardPrompt = JSON.stringify(this.getBoardJSON(board), null, 1);
-    const historyPrompt = JSON.stringify(
-      this.getBoardHistoryJSON(history),
-      null,
-      1
-    );
+    const boardPrompt = this.getBoardPrompt(board);
+    const historyPrompt = this.getHistoryPrompt(history);
+    const retryPrompt = this.getRetryHistoryPrompt(retryHistory);
 
     return `
     あなたはオセロを趣味で嗜むユーザーで、現在対戦中です。
@@ -284,23 +332,26 @@ export class OperationPutCellByCPUUsecase {
     ボードのサイズは${boardSize}x${boardSize}です。
 
     #対戦のルール
-    1. 盤面は「#盤面の状況」に以下のJSONフォーマットの例のように表現されます。
-    \`\`\`json
+    1. 盤面は「#盤面の状況」に以下の例のように${boardSize}x${boardSize}の2次元配列のJSONフォーマットで表現されます。
+    \`\`\`board_example.json
     [
-    	{ "position": { x: 0, y; 0 }, "color": "black" },
-    	{ "position": { x: 1, y; 0 }, "color": "black" },
-    	{ "position": { x: 2, y; 0 }, "color": "white" },
-    	...
-    \`\`\`
+      [
+        { "position": { x: 0, y; 0 }, "color": "black" },{ "position": { x: 1, y; 0 }, "color": "black" },{ "position": { x: 2, y; 0 }, "color": "white" }, ... { "position": { x: 8, y; 0 }, "color": "white" }
+      ],
+      [
+        { "position": { x: 0, y; 1 }, "color": "black" },{ "position": { x: 1, y; 1 }, "color": "black" },{ "position": { x: 2, y; 1 }, "color": "white" }, ... { "position": { x: 8, y; 1 }, "color": "white" }
+      ],
+      ...
     ]
+    \`\`\`
 
     2. 手の履歴は「#手の履歴」に以下のJSONフォーマットの例のように表現されます。
       - 手の順は、JSONの配列のインデックス順です。
-    \`\`\`json
+    \`\`\`history_example.json
     [
     	{ "position": { x: 4, y; 4 }, "color": "black" },
     	{ "position": { x: 3, y; 4 }, "color": "white" },
-    	{ "position": { x: 2, y; 4 }, "color": "black" },
+    	{ "position": { x: 2, y; 4 }, "color": "black" }
     ]
     \`\`\`
 
@@ -311,11 +362,39 @@ export class OperationPutCellByCPUUsecase {
      - 盤面が埋まる、または両者とも置ける場所がなくなった時点でゲーム終了です。
      - 盤面に置かれた石の数が多いほうが勝者です。
 
+    4. 「#リトライ履歴」はこのターンであなたから出された手ですが配置が不可能だったためリトライした履歴です。これらの手を繰り返さないようにしてください。
+      - リトライ履歴は、JSONの配列のインデックス順です。
+    \`\`\`retry_example.json
+    [
+      { "position": { x: 6, y; 3 }, "color": "black" },
+      { "position": { x: 6, y; 3 }, "color": "black" },
+      { "position": { x: 6, y; 3 }, "color": "black" }
+    ]
+    \`\`\`
+
     #盤面の状況
-    ${boardPrompt}
+    \`\`\`board.json
+${boardPrompt
+  .split("\n")
+  .map((line) => `    ${line}`)
+  .join("\n")}
+    \`\`\`
 
     #手の履歴
-    ${historyPrompt}
+    \`\`\`history.json
+${historyPrompt
+  .split("\n")
+  .map((line) => `    ${line}`)
+  .join("\n")}
+    \`\`\`
+
+    #リトライ履歴
+    \`\`\`retry.json
+${retryPrompt
+  .split("\n")
+  .map((line) => `    ${line}`)
+  .join("\n")}
+    \`\`\`
     `;
   }
 }
