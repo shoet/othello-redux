@@ -258,9 +258,13 @@ export class OperationPutCellByCPUUsecase {
     );
     await Promise.all(
       room?.players.map(async (p) => {
+        if (p.clientID == room.cpuID) {
+          // CPUの時はスキップ
+          return Promise.resolve();
+        }
         const conn = await this.connectionRepository.getConnection(p.clientID);
         if (!conn) {
-          console.error("connection not found", p.clientID);
+          console.warn("connection not found", p.clientID);
           return Promise.resolve();
         }
         await this.webSocketAPIAdapter.sendMessage(conn.connectionID, payload);

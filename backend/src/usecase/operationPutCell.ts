@@ -88,7 +88,6 @@ export class OperationPutCellUsecase {
     if (!room) {
       throw new Error("room not found");
     }
-    console.log("### room", room);
 
     // 石の配置
     board.putCell(position, cellColor);
@@ -125,12 +124,8 @@ export class OperationPutCellUsecase {
 
     // CPU対戦の場合
     const cpu = room.getCPUPlayer();
-    console.log("### cpu", cpu);
     if (cpu) {
       // CPU返答用SQSキューにSendMessageする
-      const messageGroupID = board.boardID;
-      const message = JSON.stringify({ board_id: board.boardID });
-      console.log("### message", messageGroupID, message);
       await this.sqsAdapter.sendMessageFIFO(
         this.putByCPUQueueURL,
         board.boardID,
@@ -157,7 +152,7 @@ export class OperationPutCellUsecase {
       room?.players.map(async (p) => {
         const conn = await this.connectionRepository.getConnection(p.clientID);
         if (!conn) {
-          console.error("connection not found", p.clientID);
+          console.warn("connection not found", p.clientID);
           return Promise.resolve();
         }
         await this.webSocketAPIAdapter.sendMessage(conn.connectionID, payload);
