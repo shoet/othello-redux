@@ -112,14 +112,23 @@ export class OperationPutCellByCPUUsecase {
       throw new Error("CPU Player not found");
     }
 
-    const cpuPosition = await this.getCPUPosition(
+    let cpuPosition = await this.getCPUPosition(
       this.board,
       this.cpuPlayer,
       boardHistory
     );
 
+    // 配置可能なポジションが得られなかった場合はランダムに配置
     if (!cpuPosition) {
-      throw new Error("cpu position not found");
+      const putableCells = this.board.getPutAbleCelles(
+        this.cpuPlayer.cellColor
+      );
+      const randomIndex = Math.floor(Math.random() * putableCells.length);
+      cpuPosition = {
+        x: putableCells[randomIndex].position.x,
+        y: putableCells[randomIndex].position.y,
+      };
+      console.log("random cpu position", cpuPosition);
     }
 
     // 石の配置

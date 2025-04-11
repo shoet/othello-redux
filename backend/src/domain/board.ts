@@ -251,7 +251,7 @@ export class Board {
   }
 
   // getPutAbleCelles は、空きマスを走査し、colorに対して配置可能なマスだけを取得する
-  private getPutAbleCelles(color: CellColor) {
+  getPutAbleCelles(color: CellColor) {
     const putableCells: Cell[] = [];
     this.cells.forEach((row) => {
       row.forEach((cell) => {
