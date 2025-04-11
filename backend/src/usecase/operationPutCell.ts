@@ -1,11 +1,11 @@
 import { Board } from "../domain/board";
+import { Room } from "../domain/room";
 import {
   BoardID,
   CellColor,
   ClientID,
   Connection,
   Position,
-  Room,
 } from "../domain/types";
 
 interface IBoardRepository {
@@ -37,25 +37,40 @@ interface IBoardHistoryRepository {
   ): Promise<void>;
 }
 
+interface SQSAdapter {
+  sendMessageFIFO(
+    queueURL: string,
+    messageGroupID: string,
+    body: string,
+    messageDeduplicationID: string
+  ): Promise<void>;
+}
+
 export class OperationPutCellUsecase {
   private boardRepository: IBoardRepository;
   private boardHistoryRepository: IBoardHistoryRepository;
   private roomRepository: IRoomRepository;
   private connectionRepository: IConnectionRepository;
   private webSocketAPIAdapter: WebSocketAPIAdapter;
+  private sqsAdapter: SQSAdapter;
+  private putByCPUQueueURL: string;
 
   constructor(
     boardRepository: IBoardRepository,
     boardHistoryRepository: IBoardHistoryRepository,
     roomRepository: IRoomRepository,
     connectionRepository: IConnectionRepository,
-    webSocketAPIAdapter: WebSocketAPIAdapter
+    webSocketAPIAdapter: WebSocketAPIAdapter,
+    sqsAdapter: SQSAdapter,
+    putByCPUQueueURL: string
   ) {
     this.boardRepository = boardRepository;
     this.boardHistoryRepository = boardHistoryRepository;
     this.roomRepository = roomRepository;
     this.connectionRepository = connectionRepository;
     this.webSocketAPIAdapter = webSocketAPIAdapter;
+    this.sqsAdapter = sqsAdapter;
+    this.putByCPUQueueURL = putByCPUQueueURL;
   }
 
   async run(
@@ -90,8 +105,6 @@ export class OperationPutCellUsecase {
       cellColor
     );
 
-    let isEndgame = board.isEndGame();
-
     // 次ターンのプレイヤーが石を置けない場合はスキップ
     let nextPlayer = room.players[board.getTurnIndex()];
     let isSkip = board.isSkip(nextPlayer.cellColor);
@@ -102,10 +115,34 @@ export class OperationPutCellUsecase {
       nextPlayer = room.players[board.getTurnIndex()];
       isSkip = board.isSkip(nextPlayer.cellColor);
       if (isSkip) {
-        isEndgame = true;
+        await this.sendTurnResponse(board, room, true);
+        return;
       }
+      await this.sendTurnResponse(board, room, false);
+      return;
     }
 
+    // CPU対戦の場合
+    const cpu = room.getCPUPlayer();
+    if (cpu) {
+      // CPU返答用SQSキューにSendMessageする
+      await this.sqsAdapter.sendMessageFIFO(
+        this.putByCPUQueueURL,
+        board.boardID,
+        JSON.stringify({ board_id: board.boardID }),
+        `${board.boardID}-${board.turn}` // messageDeduplicationID
+      );
+    }
+
+    // ルームにボード情報と勝ち負け判定を通知
+    await this.sendTurnResponse(board, room, false);
+  }
+
+  async sendTurnResponse(
+    board: Board,
+    room: Room,
+    isEndgame: boolean
+  ): Promise<void> {
     // ルームにボード情報と勝ち負け判定を通知
     const payload = this.webSocketAPIAdapter.createSendBoardInfoPayload(
       board,
@@ -115,7 +152,7 @@ export class OperationPutCellUsecase {
       room?.players.map(async (p) => {
         const conn = await this.connectionRepository.getConnection(p.clientID);
         if (!conn) {
-          console.error("connection not found", p.clientID);
+          console.warn("connection not found", p.clientID);
           return Promise.resolve();
         }
         await this.webSocketAPIAdapter.sendMessage(conn.connectionID, payload);

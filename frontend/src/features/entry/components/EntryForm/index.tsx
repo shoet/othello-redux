@@ -4,6 +4,8 @@ import React, { useEffect } from "react";
 import styles from "./index.module.scss";
 import { useNavigate } from "react-router-dom";
 import { useEntryForm } from "./hooks";
+import clsx from "clsx";
+import { joinRoomCPU } from "../../../../services/joinRoom";
 
 export const EntryForm = (props: React.ComponentProps<"div">) => {
   const { ...rest } = props;
@@ -15,10 +17,12 @@ export const EntryForm = (props: React.ComponentProps<"div">) => {
   );
   const clientID = useAppSelector((state) => state.webSocketReducer.clientID);
 
-  const handleOnSubmit = async (clientID: string, roomID: string) => {
-    if (clientID && roomID) {
-      await joinRoom(clientID, roomID);
-    }
+  const handleJoinRoom = async (clientID: string, roomID: string) => {
+    await joinRoom(clientID, roomID);
+  };
+
+  const handleVsCPU = async (clientID: string) => {
+    await joinRoomCPU(clientID);
   };
 
   useEffect(() => {
@@ -30,7 +34,11 @@ export const EntryForm = (props: React.ComponentProps<"div">) => {
 
   return (
     <div {...rest}>
-      <EntryInnerForm initialClientID={clientID} submit={handleOnSubmit} />
+      <EntryInnerForm
+        initialClientID={clientID}
+        onClickJoinRoom={handleJoinRoom}
+        onClickVsCPU={handleVsCPU}
+      />
     </div>
   );
 };
@@ -38,25 +46,44 @@ export const EntryForm = (props: React.ComponentProps<"div">) => {
 export const EntryInnerForm = (
   props: {
     initialClientID: string | undefined;
-    submit: (clientID: string, roomID: string) => void;
+    onClickJoinRoom: (clientID: string, roomID: string) => void;
+    onClickVsCPU: (clientID: string) => void;
   } & React.ComponentProps<"div">
 ) => {
-  const { initialClientID, submit, ...rest } = props;
-  const { register, handleSubmit, reset } = useForm<{
+  const { initialClientID, onClickJoinRoom, onClickVsCPU, ...rest } = props;
+  const { register, reset, trigger, getValues, setError } = useForm<{
     clientID: string;
     roomID: string;
   }>();
   useEffect(() => {
     reset({ clientID: initialClientID });
   }, [initialClientID]);
+
+  const handleClickJoinRoom = async () => {
+    const result = await trigger();
+    if (!result) {
+      return;
+    }
+    const { clientID, roomID } = getValues();
+    if (!roomID || roomID === "") {
+      setError("roomID", { message: "RoomID is required" });
+      return;
+    }
+    onClickJoinRoom(clientID, roomID);
+  };
+
+  const handleClickVsCPU = async () => {
+    const result = await trigger();
+    if (!result) {
+      return;
+    }
+    const { clientID } = getValues();
+    onClickVsCPU(clientID);
+  };
+
   return (
     <div {...rest}>
-      <form
-        className={styles.form}
-        onSubmit={handleSubmit((args) => {
-          props.submit(args.clientID, args.roomID);
-        })}
-      >
+      <div className={styles.form}>
         <div className={styles.clientID}>
           <div>
             <label className={styles.formLabel} htmlFor="clientID">
@@ -78,14 +105,27 @@ export const EntryInnerForm = (
             <input
               className={styles.formInput}
               type="text"
-              {...register("roomID", { min: 1 })}
+              {...register("roomID", { required: false })}
             />
           </div>
         </div>
-        <button className={styles.submitButton} type="submit">
-          JoinRoom
-        </button>
-      </form>
+        <div className={styles.buttonArea}>
+          <button
+            className={clsx(styles.button, styles.joinRoomButton)}
+            type="submit"
+            onClick={handleClickJoinRoom}
+          >
+            JoinRoom
+          </button>
+          <button
+            className={clsx(styles.button, styles.vsCPUButton)}
+            type="submit"
+            onClick={handleClickVsCPU}
+          >
+            VS CPU
+          </button>
+        </div>
+      </div>
     </div>
   );
 };

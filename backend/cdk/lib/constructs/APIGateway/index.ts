@@ -86,17 +86,6 @@ export class APIGateway extends Construct {
     );
   }
 
-  addLambdaEnvironmentWebSocketCallbackURL(
-    lambdaFunctions: cdk.aws_lambda.Function[]
-  ) {
-    for (const lambdaFunction of lambdaFunctions) {
-      lambdaFunction.addEnvironment(
-        "CALLBACK_URL",
-        this.webSocketApiStage.callbackUrl
-      );
-    }
-  }
-
   grantGrantInvokeManageConnection(resources: cdk.aws_iam.IGrantable[]) {
     for (const resource of resources) {
       this.webSocketApi.grantManageConnections(resource);

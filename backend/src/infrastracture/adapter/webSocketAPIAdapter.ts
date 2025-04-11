@@ -62,7 +62,11 @@ export class WebSocketAPIAdapter {
     });
   }
 
-  createStartGameMessagePayload(board: Board, players: Player[]): string {
+  createStartGameMessagePayload(
+    board: Board,
+    players: Player[],
+    vsCPU?: boolean
+  ): string {
     return JSON.stringify({
       type: "start_game",
       data: {
@@ -70,6 +74,7 @@ export class WebSocketAPIAdapter {
         board_id: board.boardID,
         players: players,
         current_turn_index: board.getTurnIndex(),
+        vs_cpu: vsCPU ? true : false,
       },
     });
   }

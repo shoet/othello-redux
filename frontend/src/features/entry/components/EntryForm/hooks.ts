@@ -10,5 +10,11 @@ export const useEntryForm = () => {
     setIsLoading(false);
   };
 
+  const joinRoomCPU = async (clientID: string) => {
+    setIsLoading(true);
+    await joinRoomCPU(clientID);
+    setIsLoading(false);
+  };
+
   return { joinRoom: join, isLoading };
 };

@@ -1,10 +1,15 @@
-import { ClientID, Connection, Room, RoomID } from "../domain/types";
+import { Room } from "../domain/room";
+import { ClientID, Connection, RoomID } from "../domain/types";
 import { UsecaseError } from "./error";
 
 interface IRoomRepository {
   isExistRoom(roomID: string): Promise<boolean>;
   createRoom(roomID: string, roomName: string): Promise<void>;
-  saveUserRoom(roomID: string, clientID: ClientID): Promise<void>;
+  saveUser(
+    roomID: string,
+    clientID: ClientID,
+    options?: { isCPU: boolean }
+  ): Promise<void>;
   getRoom(roomID: RoomID): Promise<Room | undefined>;
 }
 
@@ -31,7 +36,7 @@ export class JoinRoomUsecase {
     this.roomRepository = roomRepository;
   }
 
-  async run(clientID: ClientID, roomID: RoomID) {
+  async run(clientID: ClientID, roomID: RoomID, options?: { vsCPU?: boolean }) {
     // 接続情報取得
     const connection = await this.connectionRepository.getConnection(clientID);
     if (!connection) {
@@ -44,7 +49,12 @@ export class JoinRoomUsecase {
     }
 
     // ルーム情報を保存
-    await this.roomRepository.saveUserRoom(roomID, clientID);
+    await this.roomRepository.saveUser(roomID, clientID);
+    if (options?.vsCPU) {
+      // CPU対戦の場合、CPUプレイヤーを登録する
+      const cpuPlayerID = crypto.randomUUID();
+      await this.roomRepository.saveUser(roomID, cpuPlayerID, { isCPU: true });
+    }
 
     // ルーム情報を取得
     const room = await this.roomRepository.getRoom(roomID);
@@ -56,11 +66,15 @@ export class JoinRoomUsecase {
       clientID,
       roomID
     );
+    let message = `${clientID}さんが入室しました。`;
+    if (options?.vsCPU) {
+      message = "CPUが入室しました";
+    }
     await Promise.all([
       // ユーザー情報更新
       this.webSocketAPIAdapter.sendMessage(connection.connectionID, payload),
       // ルーム全員にsystem_message送信
-      this.sendSystemMessageToRoom(room, `${clientID}さんが入室しました。`),
+      this.sendSystemMessageToRoom(room, message),
     ]);
     return roomID;
   }
@@ -73,6 +87,10 @@ export class JoinRoomUsecase {
       this.webSocketAPIAdapter.createSendSystemMessagePayload(message);
     await Promise.all([
       room.players.map(async (player) => {
+        if (player.clientID === room.cpuID) {
+          // CPUプレイヤーの場合は送信しない
+          return;
+        }
         const conn = await this.connectionRepository.getConnection(
           player.clientID
         );

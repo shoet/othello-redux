@@ -11,6 +11,7 @@ import { ClientIDIsNotMember, StartGameUsecase } from "./usecase/startGame";
 import { OperationPutCellUsecase } from "./usecase/operationPutCell";
 import { BoardHistoryRepository } from "./infrastracture/repository/boardHistoryRepository";
 import { GetPutableUsecase } from "./usecase/getPutable";
+import { SQSAdapter } from "./infrastracture/adapter/sqsAdapter";
 
 var environment = z.object({
   CONNECTION_TABLE_NAME: z.string().min(1),
@@ -18,6 +19,7 @@ var environment = z.object({
   BOARD_TABLE_NAME: z.string().min(1),
   BOARD_HISTORY_TABLE_NAME: z.string().min(1),
   CALLBACK_URL: z.string().min(1),
+  PUT_BY_CPU_QUEUE_URL: z.string().min(1),
 });
 
 type Environment = z.infer<typeof environment>;
@@ -61,6 +63,7 @@ app.post("/join_room", async (c) => {
     .object({
       client_id: z.string().min(1),
       room_id: z.string().min(1),
+      vs_cpu: z.boolean().optional(),
     })
     .safeParse(body);
   if (!requestBody.success) {
@@ -80,8 +83,41 @@ app.post("/join_room", async (c) => {
   );
   const roomID = await usecase.run(
     requestBody.data.client_id,
-    requestBody.data.room_id
+    requestBody.data.room_id,
+    {
+      vsCPU: requestBody.data.vs_cpu,
+    }
   );
+
+  return c.json({ room_id: roomID }, 200);
+});
+
+app.post("/join_room_cpu", async (c) => {
+  const body = await c.req.json();
+  const requestBody = z
+    .object({
+      client_id: z.string().min(1),
+    })
+    .safeParse(body);
+  if (!requestBody.success) {
+    console.error(requestBody.error.errors);
+    return c.json({ error: "bad request" }, 400);
+  }
+
+  const websocketAdapter = new WebSocketAPIAdapter(env.CALLBACK_URL);
+  const connecitonRepository = new ConnectionRepository(
+    env.CONNECTION_TABLE_NAME
+  );
+  const roomRepository = new RoomRepository(env.ROOM_TABLE_NAME);
+  const usecase = new JoinRoomUsecase(
+    websocketAdapter,
+    connecitonRepository,
+    roomRepository
+  );
+  const generateRoomID = crypto.randomUUID();
+  const roomID = await usecase.run(requestBody.data.client_id, generateRoomID, {
+    vsCPU: true,
+  });
 
   return c.json({ room_id: roomID }, 200);
 });
@@ -168,6 +204,9 @@ app.post("/put_cell", async (c) => {
     })
     .safeParse(body);
   if (!requestBody.success) {
+    console.error("failed to parse requestBody", {
+      error: requestBody.error.format(),
+    });
     return c.json({ error: "bad request" }, 400);
   }
   const boardRepository = new BoardRepository(env.BOARD_TABLE_NAME);
@@ -179,13 +218,16 @@ app.post("/put_cell", async (c) => {
   const connecitonRepository = new ConnectionRepository(
     env.CONNECTION_TABLE_NAME
   );
+  const sqsAdapter = new SQSAdapter();
 
   const usecase = new OperationPutCellUsecase(
     boardRepository,
     boardHistoryRepository,
     roomRepository,
     connecitonRepository,
-    websocketAdapter
+    websocketAdapter,
+    sqsAdapter,
+    env.PUT_BY_CPU_QUEUE_URL
   );
 
   const request = requestBody.data;
