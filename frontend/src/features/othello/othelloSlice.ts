@@ -7,7 +7,7 @@ import type {
   CellColor,
   GameScore,
 } from "./othello";
-import { calcScore, getEmptyBoard, putCell } from "./othello";
+import { getEmptyBoard, putCell } from "./othello";
 
 export type OthelloGameStatus = "prepare" | "playing" | "end";
 
