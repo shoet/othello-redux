@@ -1,5 +1,5 @@
 import { Board } from "../Board";
-import { useOthello } from "./hooks";
+import { useOthello, useOthelloHeader } from "./hooks";
 import { Cell, Player } from "../../othello";
 import styles from "./index.module.scss";
 import { CSSProperties, useEffect } from "react";
@@ -12,12 +12,14 @@ export const Othello = () => {
   const {
     clientID,
     roomID,
-    gameStatus,
     board,
     players,
     currentPlayerIndex,
     handlePutCell,
   } = useOthello();
+
+  const { getHeaderMessage, getHeaderDiskColor, getCurrentScore } =
+    useOthelloHeader();
 
   const handleCliekCell = (cell: Cell, player: Player) => {
     if (player.clientID !== clientID) {
@@ -42,9 +44,9 @@ export const Othello = () => {
   return (
     <div className={styles.othello} style={style}>
       <OthelloHeader
-        clientID={clientID}
-        status={gameStatus}
-        turnPlayer={players && players[currentPlayerIndex]}
+        diskColor={getHeaderDiskColor()}
+        message={getHeaderMessage()}
+        gameScore={getCurrentScore()}
       />
       <div className={styles.board}>
         <Board

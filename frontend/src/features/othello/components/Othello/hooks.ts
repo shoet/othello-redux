@@ -1,6 +1,6 @@
 import { putCellAction } from "../../othelloSlice";
 import { useAppDispatch, useAppSelector } from "../../../../hook";
-import { CellColor, CellPosition } from "../../othello";
+import { calcScore, CellColor, CellPosition } from "../../othello";
 import { putCell } from "../../../../services/putCell";
 import { getPutable } from "../../../../services/getPutable";
 
@@ -54,5 +54,46 @@ export const useOthello = () => {
     players,
     currentPlayerIndex,
     handlePutCell,
+  };
+};
+
+export const useOthelloHeader = () => {
+  const ownClientID = useAppSelector(
+    (state) => state.webSocketReducer.clientID
+  );
+  const gameStatus = useAppSelector((state) => state.othelloReducer.status);
+  const players = useAppSelector((state) => state.othelloReducer.players);
+  const currentPlayerIndex = useAppSelector(
+    (state) => state.othelloReducer.currentPlayerIndex
+  );
+  const board = useAppSelector((state) => state.othelloReducer.board);
+
+  const getCurrentScore = () => {
+    return calcScore(board);
+  };
+
+  const getMessage = () => {
+    const currentPlayer = players && players[currentPlayerIndex];
+    if (gameStatus === "prepare") return "ゲームを開始します。";
+    if (gameStatus === "end") return "ゲームが終了しました。";
+    if (currentPlayer) {
+      return currentPlayer?.clientID === ownClientID
+        ? "あなたのターンです。"
+        : "相手のターンです。";
+    }
+    return "";
+  };
+
+  const getDiskColor = (): CellColor | undefined => {
+    const currentPlayer = players && players[currentPlayerIndex];
+    if (gameStatus !== "playing") return undefined;
+    if (!currentPlayer) return undefined;
+    return currentPlayer.cellColor;
+  };
+
+  return {
+    getHeaderMessage: getMessage,
+    getHeaderDiskColor: getDiskColor,
+    getCurrentScore: getCurrentScore,
   };
 };
