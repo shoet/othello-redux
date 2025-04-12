@@ -1,6 +1,13 @@
 import { createSlice, PayloadAction } from "@reduxjs/toolkit";
-import type { Board, Player, Result, CellPosition, CellColor } from "./othello";
-import { getEmptyBoard, putCell } from "./othello";
+import type {
+  Board,
+  Player,
+  Result,
+  CellPosition,
+  CellColor,
+  GameScore,
+} from "./othello";
+import { calcScore, getEmptyBoard, putCell } from "./othello";
 
 export type OthelloGameStatus = "prepare" | "playing" | "end";
 
@@ -14,6 +21,7 @@ export type OthelloState = {
   result?: Result;
   isTurnPutted: boolean;
   vsCPU?: boolean;
+  score?: GameScore;
 };
 
 export const DEFAULT_BOARD_SIZE = 8;
@@ -24,6 +32,10 @@ const initState: OthelloState = {
   players: [],
   currentPlayerIndex: 0,
   isTurnPutted: false,
+  score: {
+    black: { color: "black", count: 0 },
+    white: { color: "white", count: 0 },
+  },
 };
 
 export const othelloSlice = createSlice({

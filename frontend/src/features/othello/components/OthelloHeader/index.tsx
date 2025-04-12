@@ -1,12 +1,23 @@
 import { CSSProperties, memo } from "react";
-import { CellColor } from "../../othello";
+import { CellColor, GameScore } from "../../othello";
 import { Disk } from "../Disk";
 import styles from "./index.module.scss";
 import { theme } from "../../../../theme";
+import { ScoreDisk } from "../ScoreDisk";
 
 type Props = {
   diskColor?: CellColor;
   message?: string;
+  gameScore?: GameScore;
+};
+
+const Score = (gameScore: GameScore) => {
+  return (
+    <div className={styles.gameScore}>
+      <ScoreDisk color="white" count={gameScore.white.count} />
+      <ScoreDisk color="black" count={gameScore.black.count} />
+    </div>
+  );
 };
 
 const OthelloHeaderComponent = (props: Props) => {
@@ -15,8 +26,11 @@ const OthelloHeaderComponent = (props: Props) => {
   } as CSSProperties;
   return (
     <div className={styles.header} style={style}>
-      {props.diskColor && <Disk color={props.diskColor} />}
-      {props.message && <div className={styles.message}>{props.message}</div>}
+      <div className={styles.titleInner}>
+        {props.diskColor && <Disk color={props.diskColor} />}
+        {props.message && <div className={styles.message}>{props.message}</div>}
+      </div>
+      {props.gameScore && <Score {...props.gameScore} />}
     </div>
   );
 };

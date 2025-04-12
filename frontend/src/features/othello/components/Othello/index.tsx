@@ -18,7 +18,8 @@ export const Othello = () => {
     handlePutCell,
   } = useOthello();
 
-  const { getHeaderMessage, getHeaderDiskColor } = useOthelloHeader();
+  const { getHeaderMessage, getHeaderDiskColor, getCurrentScore } =
+    useOthelloHeader();
 
   const handleCliekCell = (cell: Cell, player: Player) => {
     if (player.clientID !== clientID) {
@@ -45,6 +46,7 @@ export const Othello = () => {
       <OthelloHeader
         diskColor={getHeaderDiskColor()}
         message={getHeaderMessage()}
+        gameScore={getCurrentScore()}
       />
       <div className={styles.board}>
         <Board

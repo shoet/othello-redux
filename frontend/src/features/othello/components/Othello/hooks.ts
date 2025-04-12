@@ -1,6 +1,6 @@
-import { OthelloGameStatus, putCellAction } from "../../othelloSlice";
+import { putCellAction } from "../../othelloSlice";
 import { useAppDispatch, useAppSelector } from "../../../../hook";
-import { CellColor, CellPosition, Player } from "../../othello";
+import { calcScore, CellColor, CellPosition } from "../../othello";
 import { putCell } from "../../../../services/putCell";
 import { getPutable } from "../../../../services/getPutable";
 
@@ -66,6 +66,11 @@ export const useOthelloHeader = () => {
   const currentPlayerIndex = useAppSelector(
     (state) => state.othelloReducer.currentPlayerIndex
   );
+  const board = useAppSelector((state) => state.othelloReducer.board);
+
+  const getCurrentScore = () => {
+    return calcScore(board);
+  };
 
   const getMessage = () => {
     const currentPlayer = players && players[currentPlayerIndex];
@@ -86,5 +91,9 @@ export const useOthelloHeader = () => {
     return currentPlayer.cellColor;
   };
 
-  return { getHeaderMessage: getMessage, getHeaderDiskColor: getDiskColor };
+  return {
+    getHeaderMessage: getMessage,
+    getHeaderDiskColor: getDiskColor,
+    getCurrentScore: getCurrentScore,
+  };
 };
