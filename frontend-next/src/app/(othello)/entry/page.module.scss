@@ -1,0 +1,12 @@
+.entryPage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+
+  .entryForm {
+    position: relative;
+    top: -100px;
+    min-width: 600px;
+  }
+}
